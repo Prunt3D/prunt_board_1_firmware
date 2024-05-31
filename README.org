@@ -1,0 +1,25 @@
+* Building
+When first building or when updating the board support libraries:
+#+begin_src shell
+bash -c 'cd board_support/bb-runtimes/ && ./runtimes.sh'
+#+end_src
+
+Regular build:
+#+begin_src shell
+alr build && alr exec -- arm-none-eabi-objcopy -O binary bin/prunt_board_1_firmware.elf bin/prunt_board_1_firmware.bin
+#+end_src
+
+* Flashing
+#+begin_src shell
+stm32flash -w ./bin/prunt_board_1_firmware.bin -v /dev/serial/by-id/usb-Prunt_Prunt_Board_1_...
+#+end_src
+
+* STTY For Debugging
+#+begin_src shell
+stty -F /dev/serial/by-id/usb-Prunt_Prunt_Board_1_... 3000000 cs8 -cstopb -parenb raw
+#+end_src
+
+* Stack Usage Analysis
+#+begin_src shell
+python3 ./stack_usage.py ./board_support/bb-runtimes/runtimes/embedded-stm32g474/obj/*.ci ./obj/development/*.ci ./board_support/ADL/obj_Production/*.ci
+#+end_src
