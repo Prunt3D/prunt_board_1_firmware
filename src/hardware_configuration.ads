@@ -33,11 +33,6 @@ package Hardware_Configuration is
 
    --  Steppers
 
-   TMC_UART_DMA_RX_Controller : DMA_Controller renames DMA_2;
-   TMC_UART_DMA_RX_Stream     : constant DMA_Stream_Selector  := Stream_1;
-   TMC_UART_DMA_RX_Priority   : constant DMA_Priority_Level   := Priority_High;
-   TMC_UART_DMA_RX_Channel    : constant DMA_Channel_Selector := USART2_RX;
-
    TMC_UART_Internal : aliased STM32_SVD.USART.USART_Peripheral with
      Import, Volatile, Address => STM32_SVD.USART2_Base;
    TMC_UART          : USART renames USART_2;

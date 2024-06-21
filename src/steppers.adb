@@ -1,16 +1,15 @@
 with STM32.USARTs;           use STM32.USARTs;
-with STM32.DMA;              use STM32.DMA;
 with HAL;                    use HAL;
 with Ada.Real_Time;          use Ada.Real_Time;
 with Hardware_Configuration; use Hardware_Configuration;
 with STM32.GPIO;             use STM32.GPIO;
 with STM32.Device;           use STM32.Device;
+with Server_Communication;
 
 package body Steppers is
 
    procedure Init is
    begin
-      Enable_Clock (TMC_UART_DMA_RX_Controller);
       Enable_Clock (TMC_UART);
 
       Set_Word_Length (TMC_UART, Word_Length_8);
@@ -36,22 +35,6 @@ package body Steppers is
           AF             => TMC_UART_Pin_AF));
 
       delay until Clock + Milliseconds (10);
-
-      Configure
-        (TMC_UART_DMA_RX_Controller,
-         TMC_UART_DMA_RX_Stream,
-        (Channel                       => USART2_RX,
-          Direction                    => Peripheral_To_Memory,
-          Increment_Peripheral_Address => False,
-          Increment_Memory_Address     => True,
-          Peripheral_Data_Format       => Bytes,
-          Memory_Data_Format           => Bytes,
-          Operation_Mode               => Normal_Mode,
-          Priority                     => TMC_UART_DMA_RX_Priority,
-          Memory_Burst_Size            => Memory_Burst_Single,
-          Peripheral_Burst_Size        => Peripheral_Burst_Single));
-
-      Enable_DMA_Receive_Requests (TMC_UART);
 
       for S in Stepper_Name loop
          Disable (S);
@@ -80,17 +63,28 @@ package body Steppers is
       Receive_Failed : out Byte_Boolean;
       Output         : out TMC2240_UART_Data_Byte_Array)
    is
-      type RX_Buffer_Type is array (1 .. 16) of UInt8 with
-        Pack => True;
-      RX_Buffer  : RX_Buffer_Type;
-      DMA_Result : DMA_Error_Code;
+      RX_Buffer  : array (1 .. 12) of UInt8 := (others => 0);
+      --  Extra bytes for transmitted bytes since we are using half-duplex mode.
+      Fail_Time : Time;
    begin
-      Start_Transfer
-        (TMC_UART_DMA_RX_Controller,
-         Stream      => TMC_UART_DMA_RX_Stream,
-         Source      => Read_Data_Register_Address (TMC_UART),
-         Destination => RX_Buffer'Address,
-         Data_Count  => RX_Buffer'Length);
+      Receive_Failed := False;
+
+      for S in USART_Status_Flag loop
+         Clear_Status (TMC_UART, S);
+      end loop;
+
+      while Rx_Ready (TMC_UART) or TMC_UART_Internal.ISR.BUSY loop
+         declare
+            Junk : UInt9 := TMC_UART_Internal.RDR.RDR;
+         begin
+            null;
+         end;
+         Server_Communication.Transmit_String_Line ("Unexpected data on TMC UART before read.");
+      end loop;
+
+      for S in USART_Status_Flag loop
+         Clear_Status (TMC_UART, S);
+      end loop;
 
       --  STM32G474 has a 8 byte FIFO (Table 345, RM0440 Rev 8), so no need for DMA here.
       TMC_UART_Internal.CR1.TE := False;
@@ -99,20 +93,51 @@ package body Steppers is
       end loop;
       TMC_UART_Internal.CR1.TE := True;
 
-      Poll_For_Completion (TMC_UART_DMA_RX_Controller, TMC_UART_DMA_RX_Stream, Full_Transfer, Seconds (1), DMA_Result);
+      Fail_Time := Clock + Seconds (1);
 
-      if DMA_Result /= DMA_No_Error then
-         Receive_Failed := True;
-      else
-         Receive_Failed := False;
-         for I in 1 .. 8 loop
-            Output (I) := TMC2240_UART_Byte (RX_Buffer (I + 8));
+      Outer : for I in RX_Buffer'Range loop
+         loop
+            exit when Rx_Ready (TMC_UART);
+            if Clock > Fail_Time then
+               Receive_Failed := True;
+               exit Outer;
+            end if;
          end loop;
+         RX_Buffer (I) := UInt8 (Current_Input (TMC_UART));
+      end loop Outer;
+
+      if Status (TMC_UART, Overrun_Error_Indicated) then
+         Receive_Failed := True;
+         Server_Communication.Transmit_String_Line ("TMC UART overrun.");
       end if;
+
+      --  TODO: DMA appears to not work when HDSEL is set, but this is entirely undocumented. As transmitted bytes go
+      --  in to the 8-byte receiving FIFO, we can not rely on the FIFO to guarantee that all bytes will be received.
+
+      for I in 1 .. 8 loop
+         Output (I) := TMC2240_UART_Byte (RX_Buffer (I + 4));
+      end loop;
    end UART_Read;
 
    procedure UART_Write (Input : TMC2240_UART_Data_Byte_Array) is
    begin
+      for S in USART_Status_Flag loop
+         Clear_Status (TMC_UART, S);
+      end loop;
+
+      while Rx_Ready (TMC_UART) or TMC_UART_Internal.ISR.BUSY loop
+         declare
+            Junk : UInt9 := TMC_UART_Internal.RDR.RDR;
+         begin
+            null;
+         end;
+         Server_Communication.Transmit_String_Line ("Unexpected data on TMC UART before write.");
+      end loop;
+
+      for S in USART_Status_Flag loop
+         Clear_Status (TMC_UART, S);
+      end loop;
+
       --  STM32G474 has a 8 byte FIFO (Table 345, RM0440 Rev 8), so no need for DMA here.
       TMC_UART_Internal.CR1.TE := False;
       for Byte of Input loop
