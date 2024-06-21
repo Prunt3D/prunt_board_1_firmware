@@ -31,7 +31,7 @@ project Prunt_Board_1_Firmware is
    end Builder;
 
    package Binder is
-      for Switches ("Ada") use ("-Es"); --  Traceback
+      for Switches ("Ada") use ("-Es", "-D4k");
    end Binder;
 
    package Linker is
