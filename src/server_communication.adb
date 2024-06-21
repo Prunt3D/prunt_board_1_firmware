@@ -220,6 +220,7 @@ package body Server_Communication is
                   when TMC_Write_Kind =>
                      Steppers.UART_Write (RX_Message.Content.TMC_Write_Data);
                   when TMC_Read_Kind =>
+                     Set_TX_Message_Kind (TMC_Read_Reply_Kind);
                      Steppers.UART_Read
                        (RX_Message.Content.TMC_Read_Data,
                         TX_Message.Content.TMC_Receive_Failed,
