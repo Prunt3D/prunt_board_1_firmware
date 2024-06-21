@@ -41,11 +41,13 @@ all_scenarios = {
     'Has_libc': ['no', 'yes'],
     # Whether an implementation of compare and swap is available
     'Has_Compare_And_Swap': ['yes', 'no'],
+    # Whether the target supports CHERI instructions
+    'Has_CHERI': ['no', 'yes'],
     # RAM profile
     'Memory_Profile': ['small', 'large', 'huge'],
     # 32-bit or 64-bit timers available on the hardware
     'Timer': ['n/a', 'timer32', 'timer64'],
-    # Choose between Serial I/O or semihosting (Cortex-M specific)
+    # Choose between Serial I/O or semihosting (Arm specific)
     'Text_IO': ['serial', 'semihosting'],
     # How does the runtime integrate C support
     'Add_C_Integration': ['no', 'ada_clib', 'newlib'],
@@ -81,6 +83,9 @@ all_scenarios = {
     'Add_Image_Char': ['no', 'yes'],
     'Add_Image_Wide_Char': ['no', 'yes'],
     # 'Value:
+    'Add_Value_Spec': ['no', 'yes'],
+    'Add_Value_LL_Spec': ['no', 'yes'],
+    'Add_Value_LLL_Spec': ['no', 'yes'],
     'Add_Value_Bool': ['no', 'yes'],
     'Add_Value_Enum': ['no', 'yes'],
     'Add_Value_Int': ['no', 'yes'],
@@ -109,6 +114,7 @@ all_scenarios = {
     'Add_Pack64': ['no', 'yes'],
     # Various support packages
     'Add_Case_Util': ['no', 'yes'],
+    'Add_Command_Line': ['no', 'yes'],
     'Add_Float_Util': ['no', 'yes'],
     'Add_Image_Util': ['no', 'yes'],
     'Add_IO_Exceptions': ['no', 'yes'],
@@ -218,25 +224,30 @@ sources = {
             'hie/s-macres.ads',
             'hie/s-textio.ads'],
         'deos_srcs': [
+            'exit.c',
             'hie/g-io__c.ads',
             'hie/a-textio__deos.ads', 'hie/a-textio__deos.adb',
             'hie/s-macres.ads',
              ],
         'pikeos_srcs': [
             'hie/a-textio.ads',
+            'exit.c',
             'hie/g-io__zfp.ads', 'hie/g-io__zfp.adb',
             'hie/g-io-put__bb.adb',
             'hie/s-macres.ads',
             'hie/s-parame__large.ads', 'hie/s-parame.adb',
             'hie/s-textio.ads'],
         'vx7r2cert_srcs': [
+            'exit.c',
             'libgnat/g-io.ads', 'hie/g-io__vxworks7cert.adb',
             'hie/s-textio__vxworks7cert.ads', 'hie/s-textio__vxworks7cert.adb',
             'hie/a-textio.ads', 'hie/a-textio__vxworks7cert.adb',
             'hie/s-macres.ads',
             'vx_stack_info.c'],
         'qnx_srcs': [
-            'libgnat/g-io.ads', 'hie/g-io__qnx.adb',
+            'exit.c',
+            'hie/g-io__zfp.ads', 'hie/g-io__zfp.adb',
+            'hie/g-io-put.adb',
             'hie/a-textio.ads', 'hie/a-textio__qnx.adb',
             'hie/s-macres.ads',
             'hie/s-textio__qnx.ads', 'hie/s-textio__qnx.adb']
@@ -256,6 +267,11 @@ sources = {
             'libgnat/s-imgllli.ads', 'libgnat/s-imglllu.ads',
             'libgnat/s-widllli.ads',
             'libgnat/s-widlllu.ads']
+    },
+
+    'common/cheri': {
+        'conditions': ['Has_CHERI:yes'],
+        'srcs': ['libgnat/i-cheri.ads', 'libgnat/i-cheri.adb']
     },
 
     'light': {
@@ -340,9 +356,18 @@ sources = {
             'hie/s-init__light.ads'],
         'qnx_srcs' : [
             'libgnat/s-parame.ads',
-            'libgnat/s-parame.adb',
+            'libgnat/s-parame__qnx.adb',
             'hie/s-init__light.ads']
     },
+
+    # Command Line
+    'command_line': {
+        'conditions': ['Add_Command_Line:yes'],
+        'srcs': ['libgnat/a-comlin.ads', 'libgnat/a-comlin.adb',
+                 'argv.c',
+                 'runtime.h']
+    },
+
     'gccmath': {
         'conditions': ['RTS_Profile:light,light-tasking', 'Target_Word_Size:64'],
         'srcs': [],
@@ -587,8 +612,12 @@ sources = {
         'srcs': ['hie/s-memory__libc.adb']
     },
     'alloc/no-tasking': {
-        'conditions': ['Has_libc:no', 'RTS_Profile:light'],
+        'conditions': ['Has_libc:no', 'RTS_Profile:light', 'Has_CHERI:no'],
         'srcs': ['hie/s-memory__zfp.adb']
+    },
+    'alloc/no-tasking-cheri': {
+        'conditions': ['Has_libc:no', 'RTS_Profile:light', 'Has_CHERI:yes'],
+        'srcs': ['hie/s-memory__zfp_cheri.adb']
     },
     'alloc/no-cas': {
         'conditions': ['Has_libc:no',
@@ -600,29 +629,56 @@ sources = {
         'conditions': ['Has_libc:no',
                        'RTS_Profile:light-tasking',
                        'Has_Compare_And_Swap:yes',
-                       'Certifiable_Packages:no'],
+                       'Certifiable_Packages:no',
+                       'Has_CHERI:no'],
         'srcs': ['hie/s-memory__raven.adb']
+    },
+    'alloc/tasking-cheri': {
+        'conditions': ['Has_libc:no',
+                       'RTS_Profile:light-tasking',
+                       'Has_Compare_And_Swap:yes',
+                       'Certifiable_Packages:no',
+                       'Has_CHERI:yes'],
+        'srcs': ['hie/s-memory__raven_cheri.adb']
     },
     'alloc/tasking-noc': {
         'conditions': ['Has_libc:no',
                        'RTS_Profile:light-tasking',
                        'Has_Compare_And_Swap:yes',
-                       'Certifiable_Packages:yes'],
+                       'Certifiable_Packages:yes',
+                       'Has_CHERI:no'],
         'srcs': ['hie/s-memory__raven_noc.adb']
     },
     'mem': {
         'conditions': ['Has_libc:no'],
         'srcs': [
-            'hie/s-memtyp.ads',
             'hie/s-memcom.ads', 'hie/s-memcom.adb',
-            'hie/s-memcop.ads', 'hie/s-memcop.adb',
-            'hie/s-memmov.ads', 'hie/s-memmov.adb',
+            'hie/s-memcop.ads',
+            'hie/s-memmov.ads',
             'hie/s-memset.ads', 'hie/s-memset.adb']
+    },
+    'mem/no-cheri': {
+        'conditions': ['Has_libc:no', 'Has_CHERI:no'],
+        'srcs': [
+            'hie/s-memtyp.ads',
+            'hie/s-memcop.adb',
+            'hie/s-memmov.adb']
+    },
+    'mem/cheri': {
+        'conditions': ['Has_libc:no', 'Has_CHERI:yes'],
+        'srcs': [
+            'hie/s-memtyp__cheri.ads',
+            'hie/s-memcop__cheri.adb',
+            'hie/s-memmov__cheri.adb']
     },
 
     'secondary_stack/symbol': {
-        'conditions': ['RTS_Profile:!cert'],
+        'conditions': ['RTS_Profile:!cert', 'Has_CHERI:no'],
         'srcs': ['hie/s-secsta__zfp.ads', 'hie/s-secsta__zfp.adb']
+    },
+    'secondary_stack/symbol-cheri': {
+        'conditions': ['RTS_Profile:!cert', 'Has_CHERI:yes'],
+        'srcs': ['hie/s-secsta__zfp.ads', 'hie/s-secsta__cheri.adb']
     },
     'secondary_stack/softlinks': {
         'conditions': ['RTS_Profile:cert'],
@@ -688,7 +744,9 @@ sources = {
             'libgnat/s-imagen.ads', 'libgnat/s-imagen.adb',
             'libgnat/s-imen16.ads',
             'libgnat/s-imen32.ads',
-            'libgnat/s-imenu8.ads']
+            'libgnat/s-imenu8.ads'
+        ],
+        'requires': ['Add_Value_Spec:yes'],
     },
     'image/decimal': {
         'conditions': ['Add_Image_Decimal:yes'],
@@ -740,19 +798,21 @@ sources = {
         'conditions': ['Add_Image_Int:yes'],
         'srcs': [
             'libgnat/s-imagew.ads', 'libgnat/s-imagew.adb',
-            'libgnat/s-imgwiu.ads']
+            'libgnat/s-imgwiu.ads',
+        ],
+        'requires': ['Add_Value_Spec:yes'],
     },
     'image/int_ll': {
         'conditions': ['Add_Image_LL_Int:yes'],
         'srcs': [
             'libgnat/s-imgllw.ads'],
-        'requires': ['Add_Image_Int:yes']
+        'requires': ['Add_Image_Int:yes', 'Add_Value_LL_Spec:yes']
     },
     'image/int_lll': {
         'conditions': ['Add_Image_LLL_Int:yes'],
         'srcs': [
             'libgnat/s-imglllw.ads'],
-        'requires': ['Add_Image_Int:yes']
+        'requires': ['Add_Image_Int:yes', 'Add_Value_LLL_Spec:yes']
     },
     'image/based_int': {
         'conditions': ['Add_Image_Based_Int:yes'],
@@ -790,6 +850,30 @@ sources = {
         'requires': ['Add_Image_Int:yes']
     },
     # 'Value support
+    'value/spec': {
+        'conditions': ['Add_Value_Spec:yes'],
+        'srcs': [
+            'libgnat/s-valspe.ads', 'libgnat/s-valspe.adb',
+            'libgnat/s-vaispe.ads', 'libgnat/s-vaispe.adb',
+            'libgnat/s-vauspe.ads', 'libgnat/s-vauspe.adb',
+            'libgnat/s-vs_int.ads',
+            'libgnat/s-vs_uns.ads',
+        ],
+    },
+    'value/spec_ll': {
+        'conditions': ['Add_Value_LL_Spec:yes'],
+        'srcs': [
+            'libgnat/s-vs_lli.ads',
+            'libgnat/s-vs_llu.ads',
+        ],
+    },
+    'value/spec_lll': {
+        'conditions': ['Add_Value_LLL_Spec:yes'],
+        'srcs': [
+            'libgnat/s-vsllli.ads',
+            'libgnat/s-vslllu.ads',
+        ],
+    },
     'value/Boolean': {
         'conditions': ['Add_Value_Bool:yes'],
         'srcs': [
@@ -857,27 +941,28 @@ sources = {
     'value/int': {
         'conditions': ['Add_Value_Int:yes'],
         'srcs': [
-            'libgnat/s-vaispe.ads', 'libgnat/s-vaispe.adb',
-            'libgnat/s-vauspe.ads', 'libgnat/s-vauspe.adb',
             'libgnat/s-valint.ads',
             'libgnat/s-valueu.ads', 'libgnat/s-valueu.adb',
             'libgnat/s-valuei.ads', 'libgnat/s-valuei.adb',
-            'libgnat/s-valuns.ads'],
+            'libgnat/s-valuns.ads',
+        ],
         'requires': ['Add_Value_Utils:yes']
     },
     'value/int_ll': {
         'conditions': ['Add_Value_LL_Int:yes'],
         'srcs': [
             'libgnat/s-vallli.ads',
-            'libgnat/s-valllu.ads'],
-        'requires': ['Add_Value_Utils:yes']
+            'libgnat/s-valllu.ads',
+        ],
+        'requires': ['Add_Value_Utils:yes', 'Add_Value_LL_Spec:yes']
     },
     'value/int_lll': {
         'conditions': ['Add_Value_LLL_Int:yes'],
         'srcs': [
             'libgnat/s-valllli.ads',
-            'libgnat/s-vallllu.ads'],
-        'requires': ['Add_Value_Utils:yes']
+            'libgnat/s-vallllu.ads',
+        ],
+        'requires': ['Add_Value_Utils:yes', 'Add_Value_LLL_Spec:yes']
     },
     'value/char': {
         'conditions': ['Add_Value_Char:yes'],
@@ -894,8 +979,9 @@ sources = {
     'value/utils': {
         'conditions': ['Add_Value_Utils:yes'],
         'srcs': [
-            'libgnat/s-valuti.ads', 'libgnat/s-valuti.adb'],
-        'requires': ['Add_Case_Util:yes']
+            'libgnat/s-valuti.ads', 'libgnat/s-valuti.adb',
+        ],
+        'requires': ['Add_Case_Util:yes', 'Add_Value_Spec:yes']
     },
     # Utility packages
     'utils/float_fma': {
@@ -939,7 +1025,6 @@ sources = {
         'srcs': [
             'libgnat/a-nselfu.ads',
             'hie/a-numaux__ada.ads',
-            'libgnat/s-gearop.ads',  'libgnat/s-gearop.adb',
         ],
         'bb_srcs': [
             'hie/a-ngelfu__ada.ads', 'hie/a-ngelfu__ada.adb',
@@ -1030,11 +1115,10 @@ sources = {
     'math/full': {
         'conditions': ['Add_Math_Lib:!no', 'RTS_Profile:embedded'],
         'srcs': [
-            'libgnat/a-ngcoar.ads',
-            'libgnat/a-ngcoar.adb',
-            'libgnat/a-ngrear.ads',
-            'libgnat/a-ngrear.adb',
-            'libgnat/a-nurear.ads']
+            'libgnat/a-ngcoar.ads', 'libgnat/a-ngcoar.adb',
+            'libgnat/a-ngrear.ads', 'libgnat/a-ngrear.adb',
+            'libgnat/a-nurear.ads',
+            'libgnat/s-gearop.ads', 'libgnat/s-gearop.adb']
     },
     'math/softsp': {
         'conditions': ['Add_Math_Lib:softfloat,hardfloat_dp'],
@@ -1114,8 +1198,18 @@ sources = {
         'requires': ['Add_IO_Exceptions:yes'],
         'srcs': [
             'libgnat/a-stream.ads', 'libgnat/a-stream.adb',
-            'libgnat/s-stratt.ads', 'libgnat/s-stratt.adb',
+            'libgnat/s-stratt.ads',
             'libgnat/s-statxd.ads', 'libgnat/s-statxd.adb']
+    },
+    'streams/no_cheri': {
+        'conditions': ['Add_Streams:yes', 'Has_CHERI:no'],
+        'requires': ['Add_IO_Exceptions:yes'],
+        'srcs': ['libgnat/s-stratt.adb']
+    },
+    'streams/cheri': {
+        'conditions': ['Add_Streams:yes', 'Has_CHERI:yes'],
+        'requires': ['Add_IO_Exceptions:yes'],
+        'srcs': ['libgnat/s-stratt__cheri.adb']
     },
 
     # Zero-cost-exception support
@@ -1539,8 +1633,16 @@ sources = {
     'gnarl/sfp': {
         'conditions': ['RTS_Profile:light-tasking'],
         'srcs': [
-            'hie/s-taskin__raven.ads',
-            'hie/s-tposen__raven.ads', 'hie/s-tposen__raven.adb']
+            'hie/s-reldel.ads',                'hie/s-reldel.adb',
+            'hie/s-taskin__light-tasking.ads',
+            'hie/s-tasque.ads',                'hie/s-tasque.adb',
+            'hie/s-tpoben__bb.ads',            'hie/s-tpoben__bb.adb',
+            'hie/s-tposen__raven.ads',         'hie/s-tposen__raven.adb',
+            'hie/s-tpobop__light-tasking.ads', 'hie/s-tpobop__light-tasking.adb',
+            'libgnarl/a-synbar.adb',           'libgnarl/a-synbar.ads',
+            'libgnat/s-restri.ads',            'libgnat/s-restri.adb',
+            'libgnat/s-rident.ads',
+        ]
     },
 
     # Embedded Runtime

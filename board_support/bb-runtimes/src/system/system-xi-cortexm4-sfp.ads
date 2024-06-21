@@ -49,8 +49,8 @@ pragma Restrictions (No_Implicit_Dynamic_Code);
 pragma Restrictions (No_Finalization);
 --  Controlled types are not supported in this run time
 
-pragma Profile (Ravenscar);
---  This is a Ravenscar run time
+pragma Profile (Jorvik);
+--  This is a bare metal tasking runtime
 
 pragma Restrictions (No_Task_At_Interrupt_Priority);
 --  On Cortex-M, it is not possible to have tasks at Interrupt_Priority, as
@@ -132,6 +132,8 @@ package System is
 private
 
    type Address is mod Memory_Size;
+   for Address'Size use Standard'Address_Size;
+
    Null_Address : constant Address := 0;
 
    --------------------------------------

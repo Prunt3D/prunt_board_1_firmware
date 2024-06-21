@@ -48,6 +48,7 @@ with System.Multiprocessors;
 package body System.BB.Interrupts is
 
    use System.Multiprocessors;
+   use System.Storage_Elements;
    use System.BB.Board_Support.Multiprocessors;
    use System.BB.Threads;
    use System.BB.Time;
@@ -251,10 +252,10 @@ package body System.BB.Interrupts is
    function Within_Interrupt_Stack
      (Stack_Address : System.Address) return Boolean
    is
-      (Current_Interrupt /= No_Interrupt and then Stack_Address in
-          Interrupt_Stacks (CPU'First)(Stack_Space'First)'Address
+      (Current_Interrupt /= No_Interrupt and then To_Integer (Stack_Address) in
+          To_Integer (Interrupt_Stacks (CPU'First)(Stack_Space'First)'Address)
              ..
-          Interrupt_Stacks (CPU'Last)(Stack_Space'Last)'Address);
+          To_Integer (Interrupt_Stacks (CPU'Last)(Stack_Space'Last)'Address));
 
    ---------------------------
    -- Initialize_Interrupts --

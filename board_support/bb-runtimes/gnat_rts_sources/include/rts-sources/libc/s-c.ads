@@ -32,7 +32,7 @@ pragma Restrictions (No_Elaboration_Code);
 package System.C is
    pragma Pure;
 
-   type size_t is mod 2 ** Standard'Address_Size;
+   type size_t is mod System.Memory_Size;
    --  Note: the reason we redefine this here instead of using the definition
    --  in Interfaces.C is that we do not want to drag in all of Interfaces.C.
 

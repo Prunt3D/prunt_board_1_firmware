@@ -105,6 +105,8 @@ private
 
    --  Secondary stack data structure
 
+   pragma Annotate (Gnatcheck, Exempt_On, "Discriminated_Records",
+                    "only variant records are disallowed");
    type SS_Stack (Size : SP.Size_Type) is record
       Top : SS_Ptr;
       --  Index of next available location in the stack. Initialized to 1 and
@@ -119,6 +121,7 @@ private
       Internal_Chunk : Memory (1 .. Size);
       --  Memory for the secondary stack
    end record;
+   pragma Annotate (Gnatcheck, Exempt_Off, "Discriminated_Records");
 
    type Mark_Id is new SS_Ptr;
    --  The stack pointer value corresponding to the top of the stack at the

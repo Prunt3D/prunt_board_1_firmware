@@ -49,8 +49,8 @@ pragma Restrictions (No_Implicit_Dynamic_Code);
 pragma Restrictions (No_Finalization);
 --  Controlled types are not supported in this run time
 
-pragma Profile (Ravenscar);
---  This is a Ravenscar run time
+pragma Profile (Jorvik);
+--  This is a bare metal tasking runtime
 
 package System is
    pragma Pure;
@@ -131,6 +131,8 @@ package System is
 private
 
    type Address is mod Memory_Size;
+   for Address'Size use Standard'Address_Size;
+
    Null_Address : constant Address := 0;
 
    --------------------------------------

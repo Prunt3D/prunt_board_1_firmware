@@ -7,7 +7,7 @@
 --                                 S p e c                                  --
 --                          (PikeOS 5 ARM Version)                          --
 --                                                                          --
---          Copyright (C) 1992-2022, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2023, Free Software Foundation, Inc.         --
 --                                                                          --
 -- This specification is derived from the Ada Reference Manual for use with --
 -- GNAT. The copyright notice above, and the license provisions that follow --
@@ -42,7 +42,7 @@ pragma Restrictions (No_Exception_Registration);
 --  in this run time.
 
 pragma Profile (Jorvik);
---  This is a Ravenscar run time
+--  This is a bare metal tasking runtime
 
 package System is
    pragma Pure;
@@ -131,6 +131,8 @@ package System is
 private
 
    type Address is mod Memory_Size;
+   for Address'Size use Standard'Address_Size;
+
    Null_Address : constant Address := 0;
 
    --------------------------------------

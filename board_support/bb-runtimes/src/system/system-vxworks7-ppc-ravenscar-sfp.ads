@@ -56,7 +56,7 @@ pragma Restrictions (No_Use_Of_Pragma => Attach_Handler);
 pragma Restrictions (No_Specification_Of_Aspect => Attach_Handler);
 --  This pragma is not supported by the Ravenscar Cert profile
 
-pragma Profile (Ravenscar);
+pragma Profile (Jorvik);
 
 package System is
    pragma Pure;
@@ -143,6 +143,8 @@ package System is
 private
 
    type Address is mod Memory_Size;
+   for Address'Size use Standard'Address_Size;
+
    Null_Address : constant Address := 0;
 
    --------------------------------------

@@ -32,7 +32,12 @@
 
 #include <errno.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <sys/stat.h>
+
+#ifdef __CHERI_PURE_CAPABILITY__
+#include <cheriintrin.h>
+#endif
 
 /* Subprograms from System.Text_IO.  */
 extern char system__text_io__initialized;
@@ -130,16 +135,49 @@ _read (int fd, char *buf, int count)
    linker. They define the space of RAM that has not been allocated
    for code or data. */
 
-extern void *__heap_start;
-extern void *__heap_end;
+extern char __heap_start;
+extern char __heap_end;
+
+#if defined(__CHERI_PURE_CAPABILITY__)
+static void *heap_ptr;
+static void *heap_end;
+
+void __gnat_heap_init(void)
+{
+  void *base    = &__heap_start;
+  void *limit   = &__heap_end;
+  size_t length = (base <= limit
+                     ? (size_t)(limit - base)
+                     : 0);
+
+  /* Align the bounds to ensure the capability will be representable, taking
+     care to avoid exceeding __heap_start and __heap_end */
+
+  size_t rrmask     = cheri_representable_alignment_mask(length);
+  size_t rrmask_inv = (size_t)~rrmask;
+
+  base     = (void*)(((uintptr_t)base + rrmask_inv) & rrmask); /* round up */
+  limit    = (void*)((uintptr_t)limit & rrmask);               /* round down */
+  length   = (size_t)(limit - base);
+  heap_end = limit;
+
+  /* Create the heap capability from the DDC, without execute permissions */
+
+  heap_ptr = cheri_address_set(cheri_ddc_get(), cheri_address_get(base));
+  heap_ptr = cheri_bounds_set_exact(heap_ptr, length);
+  heap_ptr = cheri_perms_and(heap_ptr, (size_t)~CHERI_PERM_EXECUTE);
+}
+#else /* !defined(__CHERI_PURE_CAPABILITY__) */
+static void *heap_ptr = &__heap_start;
+static void *const heap_end = &__heap_end;
+#endif /* defined(__CHERI_PURE_CAPABILITY__) */
 
 void *
 _sbrk (int nbytes)
 {
-  static void *heap_ptr = (void *)&__heap_start;
   void *base;
 
-  if (((uintptr_t)&__heap_end - (uintptr_t)heap_ptr) >= nbytes)
+  if ((ptrdiff_t)(heap_end - heap_ptr) >= nbytes)
     {
       base = heap_ptr;
       heap_ptr += nbytes;

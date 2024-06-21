@@ -1,4 +1,4 @@
-from support import readfile, getdatafilepath
+from support import readfile, getdatafilepath, Compiler, target_compiler
 from support.bsp_sources.target import Target
 from support.files_holder import _copy
 
@@ -139,11 +139,17 @@ class Installer(object):
                     break
         if ret is None:
             # gprls did not work, try to find out manually the proper location
-            gcc = shutil.which('%s-gcc' % self.tgt.target)
-            if gcc is not None:
-                gcc_root = os.path.dirname(os.path.dirname(gcc))
+            compiler_name_pattern = (
+                '%s-llvm-gcc' if target_compiler() == Compiler.gnat_llvm else '%s-gcc'
+            )
+            compiler = shutil.which(compiler_name_pattern % self.tgt.target)
+            if compiler is not None:
+                compiler_root = os.path.dirname(os.path.dirname(compiler))
+                lib_dir = (
+                    'gnat-llvm' if target_compiler() == Compiler.gnat_llvm else 'gnat'
+                )
                 tentative = os.path.join(
-                    gcc_root, self.tgt.target, 'lib', 'gnat', rts_json_file)
+                    compiler_root, self.tgt.target, 'lib', lib_dir, rts_json_file)
                 if os.path.exists(tentative):
                     ret = os.path.normpath(tentative)
         assert ret is not None, "Cannot find %s" % rts_json_file
@@ -267,11 +273,11 @@ class Installer(object):
 
             # And generate the project files used to build the rts
 
-            build_flags = {}
-            for f in ['common_flags', 'common_gnarl_flags',
-                      'asm_flags', 'c_flags']:
-                build_flags[f] = '",\n        "'.join(rts_obj.build_flags[f])
-            cnt = readfile(getdatafilepath('target_options.gpr'))
+            build_flags = {
+                f: '",\n        "'.join(rts_obj.build_flags[f])
+                for f in rts_obj.build_flags if f.endswith('_flags')
+            }
+            cnt = readfile(getdatafilepath('target_options.gpr.in'))
             build_flags["gnat_version"] = runtime_sources.version
             # Format
             cnt = cnt.format(**build_flags)
@@ -290,9 +296,12 @@ class Installer(object):
                     target_directive = 'for Target use "%s";' % self.tgt.target
                 source_dirs = ['gnat_user', 'gnat']
                 languages = langs['gnat']
+                runtime_spark_units = \
+                    readfile(getdatafilepath('runtime_spark_units.lst')).splitlines()
                 fp.write(template.format(
                     target_directive=target_directive,
                     source_dirs='", "'.join(source_dirs),
+                    runtime_spark_units='", "'.join(runtime_spark_units),
                     languages='", "'.join(languages)))
             if 'gnarl' in libs:
                 ravenscar_build = os.path.join(rts_path, "ravenscar_build.gpr")

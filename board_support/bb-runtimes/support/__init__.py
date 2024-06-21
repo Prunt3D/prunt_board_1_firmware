@@ -1,12 +1,17 @@
 import sys
 import os
 import re
+from enum import Enum
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+# The set of compilers that we can assemble runtimes for.
+Compiler = Enum("Compiler", ["gnat", "gnat_llvm"])
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 REPO_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 _SRC_SEARCH_PATH = [REPO_DIR, ]
+_TARGET_COMPILER = Compiler.gnat
 
 
 def get_gnat_version(gnat_dir):
@@ -16,8 +21,8 @@ def get_gnat_version(gnat_dir):
     except Exception:
         print('cannot find gnatvsn.ads')
         sys.exit(1)
-    m = re.search(r'Gnat_Static_Version_String : ' +
-                  r'constant String := "([^\(\)]+)(\(([0-9]+)\))?";',
+    m = re.search(r'Library_Version : ' +
+                  r'constant String := "([0-9]+)(\.([0-9]+))?";',
                   gnatvsn_content)
     if m:
         version = m.group(1).strip().split(".")[0]
@@ -80,3 +85,14 @@ def is_string(arg):
         return isinstance(arg, basestring)  # noqa: F821
     else:
         return isinstance(arg, str)
+
+
+def set_target_compiler(comp):
+    """Set the compiler that we are assembling runtimes for"""
+    assert comp in Compiler
+    global _TARGET_COMPILER
+    _TARGET_COMPILER = comp
+
+
+def target_compiler():
+    return _TARGET_COMPILER

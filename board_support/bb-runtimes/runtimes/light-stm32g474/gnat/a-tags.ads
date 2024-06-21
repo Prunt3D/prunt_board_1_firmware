@@ -156,6 +156,8 @@ private
    type Offset_To_Top_Ptr is access all SSE.Storage_Offset;
    pragma No_Strict_Aliasing (Offset_To_Top_Ptr);
 
+   pragma Annotate (Gnatcheck, Exempt_On, "Discriminated_Records",
+                    "only variant records are disallowed");
    type Type_Specific_Data (Idepth : Natural) is record
       --  Inheritance Depth Level: Used to implement the membership test
       --  associated with single inheritance of tagged types in constant-time.
@@ -216,6 +218,7 @@ private
       --  to which it applies. For each tagged type, the expander computes the
       --  actual array size, allocates the Dispatch_Table record accordingly.
    end record;
+   pragma Annotate (Gnatcheck, Exempt_Off, "Discriminated_Records");
 
    --  The following type declaration is used by the compiler when the program
    --  is compiled with restriction No_Dispatching_Calls

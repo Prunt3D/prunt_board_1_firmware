@@ -14,7 +14,7 @@ Long_Long_Long_Size          64
 Long_Long_Size               64
 Long_Size                    32
 Maximum_Alignment             8
-Max_Unaligned_Field          64
+Max_Unaligned_Field           1
 Pointer_Size                 32
 Short_Enums                   1
 Short_Size                   16

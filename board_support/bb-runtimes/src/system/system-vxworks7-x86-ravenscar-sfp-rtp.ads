@@ -7,7 +7,7 @@
 --                                 S p e c                                  --
 --                (VxWorks7  / CERT Ravenscar Version X86)                  --
 --                                                                          --
---          Copyright (C) 1992-2022, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2023, Free Software Foundation, Inc.         --
 --                                                                          --
 -- This specification is derived from the Ada Reference Manual for use with --
 -- GNAT. The copyright notice above, and the license provisions that follow --
@@ -56,7 +56,7 @@ pragma Restrictions (No_Use_Of_Pragma => Attach_Handler);
 pragma Restrictions (No_Specification_Of_Aspect => Attach_Handler);
 --  This pragma is not supported by the Ravenscar Cert profile
 
-pragma Profile (Ravenscar);
+pragma Profile (Jorvik);
 
 package System is
    pragma Pure;
@@ -143,6 +143,8 @@ package System is
 private
 
    type Address is mod Memory_Size;
+   for Address'Size use Standard'Address_Size;
+
    Null_Address : constant Address := 0;
 
    --------------------------------------
@@ -157,7 +159,7 @@ private
 
    Backend_Divide_Checks     : constant Boolean := False;
    Backend_Overflow_Checks   : constant Boolean := True;
-   Command_Line_Args         : constant Boolean := False;
+   Command_Line_Args         : constant Boolean := True;
    Configurable_Run_Time     : constant Boolean := True;
    Denorm                    : constant Boolean := True;
    Duration_32_Bits          : constant Boolean := False;

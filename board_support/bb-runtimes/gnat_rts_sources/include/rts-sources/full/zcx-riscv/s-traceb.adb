@@ -31,6 +31,7 @@
 
 --  This is the bare board version of this package for zcx using dwarf
 with Ada.Unchecked_Conversion;
+with System.Storage_Elements; use System.Storage_Elements;
 
 package body System.Traceback is
 
@@ -127,7 +128,9 @@ package body System.Traceback is
 
       --  Discard exluded values
 
-      if PC in Params.Exclude_Min .. Params.Exclude_Max then
+      if To_Integer (PC) in
+        To_Integer (Params.Exclude_Min) .. To_Integer (Params.Exclude_Max)
+      then
          return URC_OK;
       end if;
 

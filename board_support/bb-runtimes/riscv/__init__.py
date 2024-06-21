@@ -148,7 +148,7 @@ class RiscV32(DFBBTarget):
         # For GNAT FSF builds we only have a riscv64-elf compiler that is
         # capable of building for RV32 and RV64. This is the expected practice
         # in the RISC-V community.
-        return 'riscv64-elf'
+        return "riscv64-elf"
 
     @property
     def has_timer_64(self):

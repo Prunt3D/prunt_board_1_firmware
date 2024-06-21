@@ -770,13 +770,13 @@ package body STM32.DAC is
          when Channel_1 =>
             This.STR1.STRSTDATA1 := Start_Val;
             This.STR1.STINCDATA1 := Incr_Val;
-            This.STR1.STDIR1 := Boolean'Val (Direction'Enum_Rep);
+            This.STR1.STDIR1 := Direction = Up;
             This.STMODR.STRSTTRIGSEL1 := Start_Trg'Enum_Rep;
             This.STMODR.STINCTRIGSEL1 := Incr_Trg'Enum_Rep;
          when Channel_2 =>
             This.STR2.STRSTDATA2 := Start_Val;
             This.STR2.STINCDATA2 := Incr_Val;
-            This.STR2.STDIR2 := Boolean'Val (Direction'Enum_Rep);
+            This.STR2.STDIR2 := Direction = Up;
             This.STMODR.STRSTTRIGSEL2 := Start_Trg'Enum_Rep;
             This.STMODR.STINCTRIGSEL2 := Incr_Trg'Enum_Rep;
       end case;

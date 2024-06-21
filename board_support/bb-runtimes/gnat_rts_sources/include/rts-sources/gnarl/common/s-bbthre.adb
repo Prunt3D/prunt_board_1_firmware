@@ -375,13 +375,19 @@ package body System.BB.Threads is
       Stack_Address : System.Address;
       Stack_Size    : System.Storage_Elements.Storage_Offset)
    is
+      subtype Storage_Offset is System.Storage_Elements.Storage_Offset;
+
+      function Align_Down (Addr : System.Address) return System.Address is
+        (Addr - (Addr mod Storage_Offset (Standard'Maximum_Alignment)));
+      --  Align an address to the maximum alignment boundary (rounding towards
+      --  zero if necessary).
+
    begin
       Protection.Enter_Kernel;
 
       Initialize_Thread
         (Id, Code, Arg, Priority, Base_CPU,
-         ((Stack_Address + Stack_Size) /
-            Standard'Maximum_Alignment) * Standard'Maximum_Alignment,
+         Align_Down (Stack_Address + Stack_Size),
          Stack_Address);
 
       Protection.Leave_Kernel;

@@ -75,7 +75,6 @@ with System.Machine_Code;    use System.Machine_Code;
 package body System.BB.CPU_Primitives is
 
    package SSE renames System.Storage_Elements;
-   use type SSE.Storage_Offset;
 
    pragma Warnings (Off, "*bits of * unused");
    --  Suppress warning for unused bits in a record as this occurs often in
@@ -988,6 +987,19 @@ package body System.BB.CPU_Primitives is
       --  We don't need to save the vector and floating point states as the
       --  exception handlers should not touch these registers.
 
+      --  At this point it is safe to use limited Ada code since we've saved
+      --  the caller-saved registers. Just note that there's no stack frame
+      --  allocated for this procedure, so local stack objects should not be
+      --  used. Instead we jump to proper Ada procedures. Before doing so, we
+      --  need to push a NULL return address onto the stack so the unwinder
+      --  knows to stop here in this function.
+
+      Asm
+        ("movq   $0, %%rax"                                              & NL &
+         "pushq  %%rax",
+         Clobber  => "rax, memory",
+         Volatile => True);
+
       --  Handle the exception in proper Ada code
 
       Process_Exception (Vector, Code);
@@ -995,6 +1007,11 @@ package body System.BB.CPU_Primitives is
       --  Exception has been successfully handled. Time to clean up and exit.
       --  Since processing an exception will not modify the task queues no
       --  need to check if we need to context switch to another task.
+
+      --  Ada code is no longer allowed at this point. Remove the NULL return
+      --  address from the stack.
+
+      Asm ("addq  $8, %%rsp", Clobber  => "memory", Volatile => True);
 
       Asm
         ("popq  %%r11"                                                   & NL &
@@ -1042,12 +1059,16 @@ package body System.BB.CPU_Primitives is
       Size          : Storage_Elements.Storage_Offset;
       Stack_Pointer : out Address)
    is
-      use System.Storage_Elements;
+      use type SSE.Storage_Offset;
    begin
-      --  Round down Stack Pointer to next aligned address to point to last
-      --  valid stack address.
+      Stack_Pointer := Base + Size;
 
-      Stack_Pointer := Base + (Size - (Size mod CPU_Specific.Stack_Alignment));
+      --  Round the stack pointer down to the nearest stack alignment
+
+      Stack_Pointer :=
+        Stack_Pointer -
+          (Stack_Pointer
+             mod SSE.Storage_Offset (CPU_Specific.Stack_Alignment));
    end Initialize_Stack;
 
    ------------------------
@@ -1068,7 +1089,8 @@ package body System.BB.CPU_Primitives is
          return;
       end if;
 
-      --  We cheat as we don't know the stack size nor the stack base
+      --  Call Initialize_Stack with a zero size to correctly align the stack
+      --  pointer that was passed.
 
       Initialize_Stack (Stack_Pointer, 0, Initial_SP);
 
@@ -1566,8 +1588,16 @@ package body System.BB.CPU_Primitives is
 
       --  At this point it is safe to use limited Ada code since we've saved
       --  the caller-saved registers. Just note that there's no stack frame
-      --  allocated for this procedure, so we do very little here and just jump
-      --  off to a proper Ada procedure.
+      --  allocated for this procedure, so local stack objects should not be
+      --  used. Instead we jump to proper Ada procedures. Before doing so, we
+      --  need to push a NULL return address onto the stack so the unwinder
+      --  knows to stop here in this function.
+
+      Asm
+        ("movq   $0, %%rax"                                              & NL &
+         "pushq  %%rax",
+         Clobber  => "rax, memory",
+         Volatile => True);
 
       --  Handle the interrupt at the runtime level
 
@@ -1586,6 +1616,11 @@ package body System.BB.CPU_Primitives is
       if System.BB.Threads.Queues.Context_Switch_Needed then
          Context_Switch;
       end if;
+
+      --  Ada code is no longer allowed at this point. Remove the NULL return
+      --  address from the stack.
+
+      Asm ("addq  $8, %%rsp", Clobber  => "memory", Volatile => True);
 
       --  Time to restore the state of the interrupted task and return to it
 
@@ -2280,10 +2315,10 @@ package body System.BB.CPU_Primitives is
    begin
       --  Move the argument from R12, where it was stored as part of the
       --  creation of the task, to RDI (the first parameter passing register).
-      --  Jump to the task procedure whose address is in R13
+      --  Call the task procedure whose address is in R13.
       Asm
         ("movq  %%r12, %%rdi"                                            & NL &
-         "jmp   *%%r13",
+         "call   *%%r13",
          Volatile => True);
    end Thread_Start;
 

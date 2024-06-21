@@ -38,5 +38,6 @@ package System.Machine_Reset is
 
    procedure Stop;
    pragma No_Return (Stop);
+   pragma Export (C, Stop, "__gnat_stop");
    --  Abruptly stop the program
 end System.Machine_Reset;

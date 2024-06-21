@@ -34,7 +34,10 @@
 
 with System.Semihosting;
 
-package body Ada.Text_IO is
+package body Ada.Text_IO with
+  SPARK_Mode => Off,
+  Refined_State => (File_System => null)
+is
 
    ---------
    -- Get --

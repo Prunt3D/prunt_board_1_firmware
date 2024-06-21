@@ -41,6 +41,9 @@ package body System.Memory is
    function c_malloc (Size : size_t) return System.Address;
    pragma Import (C, c_malloc, "malloc");
 
+   procedure c_free (Ptr : System.Address);
+   pragma Import (C, c_free, "free");
+
    -----------
    -- Alloc --
    -----------
@@ -77,9 +80,8 @@ package body System.Memory is
    ----------
 
    procedure Free (Ptr : System.Address) is
-      pragma Unreferenced (Ptr);
    begin
-      null;
+      c_free (Ptr);
    end Free;
 
 end System.Memory;

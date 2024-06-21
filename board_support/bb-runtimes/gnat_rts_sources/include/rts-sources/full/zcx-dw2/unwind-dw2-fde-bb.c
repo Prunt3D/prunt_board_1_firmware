@@ -33,6 +33,10 @@
 #include "unwind-pe.h"
 #include "unwind-dw2-fde.h"
 
+#ifdef __CHERI__
+# include <cheriintrin.h>
+#endif
+
 extern char __text[];
 extern char __data[];
 
@@ -154,8 +158,19 @@ bad_eh_frame_hdr (void)
 const fde *
 _Unwind_Find_FDE (void *pc, struct dwarf_eh_bases *bases)
 {
+#ifdef __CHERI_PURE_CAPABILITY__
+  /* Accesses to the exception tables are relative to __eh_frame_hdr, but this
+     symbol does not have sufficient bounds to access all of the exception
+     table sections. We therefore use a separate capability,
+     __eh_frame_hdr_cap, which must be initialized by the startup code with the
+     required bounds. */
+  extern const struct unw_eh_frame_hdr *__eh_frame_hdr_cap;
+  const struct unw_eh_frame_hdr *hdr = __eh_frame_hdr_cap;
+#else
   extern const struct unw_eh_frame_hdr __eh_frame_hdr;
   const struct unw_eh_frame_hdr *hdr = &__eh_frame_hdr;
+#endif /* defined(__CHERI_PURE_CAPABILITY__) */
+
   const unsigned char *p;
   _Unwind_Ptr eh_frame;
   _Unwind_Ptr fde_count;
@@ -230,7 +245,7 @@ _Unwind_Find_FDE (void *pc, struct dwarf_eh_bases *bases)
     f_enc_size = size_of_encoded_value (f_enc);
     read_encoded_value_with_base (f_enc & 0x0f, 0,
 				  &f->pc_begin[f_enc_size], &range);
-    if (unw_pc >= table[mid].initial_loc + data_base + range)
+    if (unw_pc >= table[mid].initial_loc + data_base + (size_t)range)
       return NULL;
     bases->func = (void *) (table[mid].initial_loc + data_base);
     bases->tbase = __text;

@@ -29,10 +29,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System;
+with System.Machine_Reset;
+
 with System.IO;                use System.IO;
 with GNAT.Debug_Utilities;     use GNAT.Debug_Utilities;
-with System;
-with System.OS_Interface;
 
 --  Default last chance handler for use with full run-time library on bare
 --  board targets.
@@ -56,14 +57,8 @@ begin
 
    New_Line;
 
-   --  Suspend forever
+   --  Stop the machine
 
-   System.OS_Interface.Sleep;
-
-   --  The following junk raise of Program_Error is required because
-   --  this is a No_Return function, and unfortunately Suspend can
-   --  return (although this particular call won't).
-
-   raise Program_Error;
+   System.Machine_Reset.Stop;
 
 end Ada.Exceptions.Last_Chance_Handler;

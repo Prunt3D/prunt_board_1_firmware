@@ -40,7 +40,7 @@ pragma Restrictions (No_Exception_Registration);
 --  in this run time.
 
 pragma Profile (Jorvik);
---  This is a Ravenscar run time
+--  This is a bare metal tasking runtime
 
 package System is
    pragma Pure;
@@ -121,6 +121,8 @@ package System is
 private
 
    type Address is mod Memory_Size;
+   for Address'Size use Standard'Address_Size;
+
    Null_Address : constant Address := 0;
 
    --------------------------------------

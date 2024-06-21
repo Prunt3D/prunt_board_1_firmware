@@ -70,7 +70,7 @@ package body STM32.COMP is
      (This  : in out Comparator;
       Input : NonInverting_Input_Port) is
    begin
-      This.CSR.INPSEL := Boolean'Val (Input'Enum_Rep);
+      This.CSR.INPSEL := Input = Option_2;
    end Set_NonInverting_Input_Port;
 
    -----------------------

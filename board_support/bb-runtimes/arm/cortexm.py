@@ -71,6 +71,9 @@ class ArmV6MTarget(Target):
             'src/s-bbarat.ads',
             'src/s-bbarat.adb')
 
+        if self.use_semihosting_io:
+            self.add_gnat_sources('src/s-sgshca__cortexm.adb')
+
 
 class ArmV7MTarget(ArmV6MTarget):
     @property
@@ -339,7 +342,7 @@ class CortexM0CommonArchSupport(ArmV6MTarget):
     def compiler_switches(self):
         # The required compiler switches
         return ('-mlittle-endian', '-mthumb', '-msoft-float',
-                '-mcpu=cortex-m0')
+                '-mcpu=cortex-m0', "-fno-auto-inc-dec")
 
     @property
     def has_fpu(self):
@@ -572,7 +575,7 @@ class CortexM1CommonArchSupport(ArmV6MTarget):
     def compiler_switches(self):
         # The required compiler switches
         return ('-mlittle-endian', '-mthumb', '-mfloat-abi=soft',
-                '-mcpu=cortex-m1')
+                '-mcpu=cortex-m1', '-fno-auto-inc-dec')
 
     @property
     def has_fpu(self):
@@ -641,7 +644,7 @@ class NRF51(ArmV6MTarget):
     def compiler_switches(self):
         # The required compiler switches
         return ('-mlittle-endian', '-mthumb', '-mfloat-abi=soft',
-                '-mcpu=cortex-m0')
+                '-mcpu=cortex-m0', '-fno-auto-inc-dec')
 
     @property
     def system_ads(self):
@@ -742,6 +745,40 @@ class NRF52(ArmV7MTarget):
             'src/s-bcpcst__pendsv.adb')
 
 
+class NRF52833(NRF52):
+    @property
+    def name(self):
+        return "nrf52833"
+
+    @property
+    def use_semihosting_io(self):
+        return True
+
+    def __init__(self):
+        super(NRF52833, self).__init__()
+
+        self.add_gnat_sources(
+            "arm/nordic/nrf52/nrf52833/s-bbbopa.ads",
+            "arm/nordic/nrf52/nrf52833/setup_board.adb",
+            "arm/nordic/nrf52/nrf52833/svd/i-nrf52.ads",
+            "arm/nordic/nrf52/nrf52833/svd/i-nrf52-clock.ads",
+            "arm/nordic/nrf52/nrf52833/svd/i-nrf52-ficr.ads",
+            "arm/nordic/nrf52/nrf52833/svd/i-nrf52-gpio.ads",
+            "arm/nordic/nrf52/nrf52833/svd/i-nrf52-uicr.ads",
+            "arm/nordic/nrf52/nrf52833/svd/i-nrf52-nvmc.ads",
+            "arm/nordic/nrf52/nrf52833/svd/i-nrf52-rtc.ads",
+            "arm/nordic/nrf52/nrf52833/svd/i-nrf52-uart.ads",
+            "arm/nordic/nrf52/nrf52833/svd/i-nrf52-temp.ads",
+            "arm/nordic/nrf52/nrf52833/svd/i-nrf52-approtect.ads",
+        )
+
+        # ravenscar support
+        self.add_gnarl_sources(
+            "arm/nordic/nrf52/nrf52833/svd/handler.S",
+            "arm/nordic/nrf52/nrf52833/svd/a-intnam.ads",
+        )
+
+
 class NRF52840(NRF52):
     @property
     def name(self):
@@ -817,19 +854,17 @@ class Stm32CommonArchSupport(ArchSupport):
     def __init__(self):
         super(Stm32CommonArchSupport, self).__init__()
 
-# Changed for stm32g474
-#        self.add_linker_script('arm/stm32/common-RAM.ld', loader='RAM')
-#        self.add_linker_script('arm/stm32/common-ROM.ld', loader='ROM')
+        # self.add_linker_script('arm/stm32/common-RAM.ld', loader='RAM')
+        # self.add_linker_script('arm/stm32/common-ROM.ld', loader='ROM')
 
         self.add_gnat_sources(
-#            'src/s-bbpara__stm32f4.ads',
-#            'arm/stm32/s-stm32.ads',
-#            'arm/stm32/start-rom.S',
-#            'arm/stm32/start-ram.S',
+            # 'src/s-bbpara__stm32f4.ads',
+            # 'arm/stm32/s-stm32.ads',
+            # 'arm/stm32/start-rom.S',
+            # 'arm/stm32/start-ram.S',
             'arm/stm32/start-common.S')
-#            'arm/stm32/setup_pll.adb',
-#            'arm/stm32/setup_pll.ads')
-# End
+            # 'arm/stm32/setup_pll.adb',
+            # 'arm/stm32/setup_pll.ads')
 
 
 stm32_board_configuration = {
@@ -868,12 +903,9 @@ stm32_board_configuration = {
     'stm32f769disco':    {'STM32_Main_Clock_Frequency': '200_000_000',
                           'STM32_HSE_Clock_Frequency': '25_000_000',
                           'STM32_FLASH_Latency': '6'},
-
-# Added for stm32g474
     'stm32g474':         {'STM32_Main_Clock_Frequency': '170_000_000',
                           'STM32_HSE_Clock_Frequency': '16_000_000',
                           'STM32_FLASH_Latency': '2'},
-# End
     }
 
 
@@ -908,10 +940,8 @@ class Stm32(ArmV7MTarget):
             return 'cortex-m4'
         elif self.mcu.startswith('stm32f7'):
             return 'cortex-m7'
-# Added for stm32g474
         elif self.mcu.startswith('stm32g4'):
             return 'cortex-m4'
-# End
         else:
             assert False, "Unexpected MCU %s" % self.mcu
 
@@ -946,16 +976,13 @@ class Stm32(ArmV7MTarget):
             self.mcu = 'stm32f7x'
         elif self.board in ['stm32f769disco']:
             self.mcu = 'stm32f7x9'
-# Added for stm32g474
         elif self.board == 'stm32g474':
             self.mcu = 'stm32g474'
-# End
         else:
             assert False, "Unknown stm32 board: %s" % self.board
 
         super(Stm32, self).__init__()
 
-# Added for stm32g474
         if self.mcu.startswith('stm32g4'):
            self.add_gnat_sources(
                'arm/stm32/stm32g474/s-bbpara.ads',
@@ -977,7 +1004,6 @@ class Stm32(ArmV7MTarget):
                'arm/stm32/setup_pll.ads')
            self.add_linker_script('arm/stm32/common-RAM.ld', loader='RAM')
            self.add_linker_script('arm/stm32/common-ROM.ld', loader='ROM')
-# End
 
         # Add board template configuration
         for key, value in stm32_board_configuration[self.board].items():
@@ -1000,10 +1026,8 @@ class Stm32(ArmV7MTarget):
             'arm/stm32/%s/svd/i-stm32-syscfg.ads' % self.mcu,
             'arm/stm32/%s/svd/i-stm32-usart.ads' % self.mcu)
 
-# Added for stm32g474
         if not self.mcu.startswith('stm32g4'):
             self.add_gnat_source('arm/stm32/s-bbbopa.ads.tmpl')
-# End
 
         if self.mcu in ['stm32f40x']:
             self.add_gnat_source('arm/stm32/stm32f40x/s-stm32.adb')
@@ -1019,10 +1043,8 @@ class Stm32(ArmV7MTarget):
                           'stm32f7x9']:
             self.add_gnat_source('arm/stm32/stm32f7x/s-stm32.adb')
 
-# Added for stm32g474
         elif self.board == 'stm32g474':
             self.add_gnat_source('arm/stm32/stm32g474/s-stm32.adb')
-# End
 
         # tasking support
         self.add_gnarl_sources(
@@ -1199,7 +1221,7 @@ class CortexM0(ArmV6MTarget):
     def compiler_switches(self):
         # The required compiler switches
         return ('-mlittle-endian', '-mthumb', '-mfloat-abi=soft',
-                '-mcpu=cortex-m0')
+                '-mcpu=cortex-m0', '-fno-auto-inc-dec')
 
     @property
     def system_ads(self):
@@ -1215,7 +1237,7 @@ class CortexM0P(CortexM0):
     def compiler_switches(self):
         # The required compiler switches
         return ('-mlittle-endian', '-mthumb', '-mfloat-abi=soft',
-                '-mcpu=cortex-m0plus')
+                '-mcpu=cortex-m0plus', '-fno-auto-inc-dec')
 
 
 class CortexM1(ArmV6MTarget):
@@ -1235,7 +1257,7 @@ class CortexM1(ArmV6MTarget):
     def compiler_switches(self):
         # The required compiler switches
         return ('-mlittle-endian', '-mthumb', '-mfloat-abi=soft',
-                '-mcpu=cortex-m1')
+                '-mcpu=cortex-m1', '-fno-auto-inc-dec')
 
     @property
     def system_ads(self):
@@ -1246,6 +1268,10 @@ class CortexM3(ArmV7MTarget):
     @property
     def name(self):
         return 'cortex-m3'
+
+    @property
+    def has_single_precision_fpu(self):
+        return False
 
     @property
     def has_fpu(self):
@@ -1272,6 +1298,10 @@ class CortexM4(ArmV7MTarget):
         return 'cortex-m4'
 
     @property
+    def has_single_precision_fpu(self):
+        return False
+
+    @property
     def has_fpu(self):
         return True
 
@@ -1294,6 +1324,10 @@ class CortexM4F(CortexM4):
     @property
     def name(self):
         return 'cortex-m4f'
+
+    @property
+    def has_single_precision_fpu(self):
+        return True
 
     @property
     def compiler_switches(self):
@@ -1330,6 +1364,10 @@ class CortexM7DF(CortexM7F):
     @property
     def name(self):
         return 'cortex-m7df'
+
+    @property
+    def has_double_precision_fpu(self):
+        return True
 
     @property
     def compiler_switches(self):

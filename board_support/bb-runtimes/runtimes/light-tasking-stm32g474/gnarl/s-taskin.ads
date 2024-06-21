@@ -29,7 +29,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This is the Ravenscar/HI-E version of this package
+--  This is the Jorvik/HI-E version of this package
 
 --  Note: the compiler generates direct calls to this interface, via Rtsfind.
 --  Any changes to this interface may require corresponding compiler changes.
@@ -63,6 +63,7 @@ package System.Tasking is
    type Ada_Task_Control_Block;
 
    type Task_Id is access all Ada_Task_Control_Block;
+
    function To_Task_Id is
       new Ada.Unchecked_Conversion
          (System.Task_Primitives.Task_Address, Task_Id);
@@ -156,6 +157,12 @@ package System.Tasking is
    pragma Unreferenced (Asynchronous_Hold);
    pragma Unreferenced (Interrupt_Server_Blocked_On_Event_Flag);
 
+   type Call_Modes is
+      (Simple_Call, Conditional_Call, Asynchronous_Call, Timed_Call);
+
+   pragma Unreferenced
+     (Simple_Call, Conditional_Call, Asynchronous_Call, Timed_Call);
+
    -------------------------------
    -- Entry related definitions --
    -------------------------------
@@ -195,6 +202,13 @@ package System.Tasking is
 
    type Entry_Call_Link is access all Entry_Call_Record;
 
+   --  Data structure to store the queue of entries. This structure is
+   --  present for each entry of a protected object.
+   type Entry_Queue is record
+      Head : Entry_Call_Link;
+      Tail : Entry_Call_Link;
+   end record;
+
    ----------------------------------
    -- Entry_Call_Record definition --
    ----------------------------------
@@ -207,7 +221,10 @@ package System.Tasking is
       --  Data passed by the compiler
 
       Next : Entry_Call_Link;
+      Prev : Entry_Call_Link;
       --  Entry_Call List
+
+      E : Entry_Index;
    end record;
    pragma Suppress_Initialization (Entry_Call_Record);
 
@@ -278,6 +295,7 @@ package System.Tasking is
 
       Sec_Stack_Ptr : System.Secondary_Stack.SS_Stack_Ptr;
       --  Pointer of currently allocated secondary stack
+
    end record;
    pragma Suppress_Initialization (TSD);
 
@@ -353,6 +371,8 @@ package System.Tasking is
    end record;
    pragma Suppress_Initialization (Common_ATCB);
 
+   pragma Annotate (Gnatcheck, Exempt_On, "Discriminated_Records",
+                    "only variant records are disallowed");
    type Ada_Task_Control_Block (Entry_Num : Task_Entry_Index) is record
    --  The discriminant Entry_Num is not needed, but we keep it here for
    --  compatibility reasons with the rest of the run times, so that the
@@ -365,6 +385,8 @@ package System.Tasking is
       --  protected objects, and is protected by the protected object lock.
    end record;
    pragma Suppress_Initialization (Ada_Task_Control_Block);
+
+   pragma Annotate (Gnatcheck, Exempt_Off, "Discriminated_Records");
 
    ----------------------------------
    -- Secondary Stack Manipulation --

@@ -30,6 +30,7 @@
 ------------------------------------------------------------------------------
 
 with System.Memory_Types; use System.Memory_Types;
+with System.Storage_Elements; use System.Storage_Elements;
 
 package body System.Memory_Set is
 
@@ -42,14 +43,14 @@ package body System.Memory_Set is
 
    function memset (M : Address; C : Integer; Size : size_t) return Address is
       B  : constant Byte := Byte (C mod 256);
-      D  : IA     := To_IA (M);
+      D  : Address := M;
       N  : size_t := Size;
       CW : Word;
 
    begin
       --  Try to set per word, if alignment constraints are respected
 
-      if (D and (Word'Alignment - 1)) = 0 then
+      if (To_Integer (D) and (Word'Alignment - 1)) = 0 then
          CW := Word (B);
          CW := Shift_Left (CW, 8) or CW;
          CW := Shift_Left (CW, 16) or CW;
@@ -62,18 +63,26 @@ package body System.Memory_Set is
          pragma Warnings (On);
 
          while N >= Word_Unit loop
-            To_Word_Ptr (D).all := CW;
+            declare
+               DW : Word with Import, Address => D;
+            begin
+               DW := CW;
+            end;
             N := N - Word_Unit;
-            D := D + Word_Unit;
+            D := D + Storage_Count (Word_Unit);
          end loop;
       end if;
 
       --  Set the remaining byte per byte
 
       while N > 0 loop
-         To_Byte_Ptr (D).all := B;
+         declare
+            DB : Byte with Import, Address => D;
+         begin
+            DB := B;
+         end;
          N := N - Byte_Unit;
-         D := D + Byte_Unit;
+         D := D + Storage_Count (Byte_Unit);
       end loop;
 
       return M;

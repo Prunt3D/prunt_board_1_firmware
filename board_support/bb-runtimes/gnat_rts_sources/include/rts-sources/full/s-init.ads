@@ -110,7 +110,7 @@ private
    Gl_Detect_Blocking : Integer := 0;
    pragma Export (C, Gl_Detect_Blocking, "__gl_detect_blocking");
 
-   Gl_Default_Stack_Size : Integer := 0;
+   Gl_Default_Stack_Size : Integer := -1;
    pragma Export (C, Gl_Default_Stack_Size, "__gl_default_stack_size");
 
    Gl_Bind_Env_Addr : Address := Null_Address;

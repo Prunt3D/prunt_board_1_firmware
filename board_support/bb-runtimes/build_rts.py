@@ -7,6 +7,7 @@
 # Python version starting from 2.6 (yes, it's very old but that's the system
 # python on oldest host).
 
+from support import Compiler, set_target_compiler
 from support.files_holder import FilesHolder
 from support.bsp_sources.installer import Installer
 from support.docgen import docgen
@@ -16,16 +17,37 @@ from pikeos import AArch64PikeOS5, ArmPikeOS, ArmPikeOS42, ArmPikeOS5, \
     PPCPikeOS5
 
 # Cortex-M runtimes
-from arm.cortexm import Stm32, Stm32l, Sam, SmartFusion2, LM3S, Microbit, \
-     NRF52840, NRF52832, MicrosemiM1, Stm32F0, RP2040Target, \
-     CortexM0, CortexM0P, CortexM1, CortexM3, CortexM4, CortexM4F, \
-     CortexM7F, CortexM7DF, CortexM23, CortexM33F, CortexM33DF
+from arm.cortexm import (
+    Stm32,
+    Stm32l,
+    Sam,
+    SmartFusion2,
+    LM3S,
+    Microbit,
+    NRF52840,
+    NRF52832,
+    NRF52833,
+    MicrosemiM1,
+    Stm32F0,
+    RP2040Target,
+    CortexM0,
+    CortexM0P,
+    CortexM1,
+    CortexM3,
+    CortexM4,
+    CortexM4F,
+    CortexM7F,
+    CortexM7DF,
+    CortexM23,
+    CortexM33F,
+    CortexM33DF,
+)
 
 # Cortex-A/R runtimes
-from arm.cortexar import TMS570, Rpi2, Rpi2Mc, Zynq7000, ZynqmpR5
+from arm.cortexar import AM64xR5, TMS570, Rpi2, Rpi2Mc, Zynq7000, ZynqmpR5
 
 # Aarch64
-from aarch64 import Rpi3, Rpi3Mc, ZynqMP
+from aarch64 import Morello, Rpi3, Rpi3Mc, ZynqMP
 
 # Deos
 from deos import ArmDeos
@@ -48,7 +70,7 @@ from visium import Visium
 from x86_64 import X8664Generic
 
 # native
-from native import X86Native, X8664Native
+from native import Aarch64Native, X86Native, X8664Native
 
 # vx7r2cert
 from vx7r2cert import AArch64Vx7r2Cert, ArmVx7r2Cert, \
@@ -79,6 +101,10 @@ def build_configs(target):
     elif target == 'ppc-pikeos5':
         t = PPCPikeOS5()
     # AArch64 elf
+    elif target == 'morello':
+        t = Morello(uart_io=True)
+    elif target == 'morello-semihosting':
+        t = Morello(uart_io=False)
     elif target == 'rpi3':
         t = Rpi3()
     elif target == 'rpi3mc':
@@ -86,6 +112,8 @@ def build_configs(target):
     elif target == 'zynqmp':
         t = ZynqMP()
     # ARM elf
+    elif target == 'am64xr5':
+        t = AM64xR5()
     elif target == 'zynq7000':
         t = Zynq7000()
     elif target == 'zynqmpr5':
@@ -127,7 +155,9 @@ def build_configs(target):
         t = LM3S()
     elif target == 'microbit':
         t = Microbit()
-    elif target == 'nrf52840':
+    elif target == "nrf52833":
+        t = NRF52833()
+    elif target == "nrf52840":
         t = NRF52840()
     elif target == 'nrf52832':
         t = NRF52832()
@@ -225,6 +255,8 @@ def build_configs(target):
         t = X86Native()
     elif target in ('x86_64-linux', 'x86_64-windows', 'x86_64-windows64'):
         t = X8664Native()
+    elif target in ('aarch64-linux',):
+        t = Aarch64Native()
     # vx7r2cert
     elif target == "aarch64-vx7r2cert":
         t = AArch64Vx7r2Cert()
@@ -278,6 +310,9 @@ def main():
         '--gen-doc', action="store_true",
         help='Generate the documentation')
     parser.add_argument(
+        '--compiler', default='gnat',
+        help='The compiler to generate flags for (gnat or gnat_llvm, defaults to gnat)')
+    parser.add_argument(
         '-o', '--output', default='install',
         help='Where built runtimes will be installed')
     parser.add_argument(
@@ -303,6 +338,8 @@ def main():
         FilesHolder.link = True
     if args.force:
         Installer.overwrite = True
+
+    set_target_compiler(Compiler[args.compiler])
 
     boards = []
 

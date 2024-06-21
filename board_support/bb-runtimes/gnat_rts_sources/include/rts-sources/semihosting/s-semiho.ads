@@ -38,6 +38,48 @@ package System.Semihosting is
    pragma No_Elaboration_Code_All;
    pragma Preelaborate;
 
+   type Exit_Reason is mod Memory_Size with Size => Word_Size;
+   --  Reason code describing the cause of the trap passed to SYS_EXIT
+
+   --  Hardware vector reason codes
+
+   ADP_Stopped_BranchThroughZero   : constant Exit_Reason := 16#20000#;
+   ADP_Stopped_UndefinedInstr      : constant Exit_Reason := 16#20001#;
+   ADP_Stopped_SoftwareInterrupt   : constant Exit_Reason := 16#20002#;
+   ADP_Stopped_PrefetchAbort       : constant Exit_Reason := 16#20003#;
+   ADP_Stopped_DataAbort           : constant Exit_Reason := 16#20004#;
+   ADP_Stopped_AddressException    : constant Exit_Reason := 16#20005#;
+   ADP_Stopped_IRQ                 : constant Exit_Reason := 16#20006#;
+   ADP_Stopped_FIQ                 : constant Exit_Reason := 16#20007#;
+
+   --  Software reason codes
+
+   ADP_Stopped_BreakPoint          : constant Exit_Reason := 16#20020#;
+   ADP_Stopped_WatchPoint          : constant Exit_Reason := 16#20021#;
+   ADP_Stopped_StepComplete        : constant Exit_Reason := 16#20022#;
+   ADP_Stopped_RunTimeErrorUnknown : constant Exit_Reason := 16#20023#;
+   ADP_Stopped_InternalError       : constant Exit_Reason := 16#20024#;
+   ADP_Stopped_UserInterruption    : constant Exit_Reason := 16#20025#;
+   ADP_Stopped_ApplicationExit     : constant Exit_Reason := 16#20026#;
+   ADP_Stopped_StackOverflow       : constant Exit_Reason := 16#20027#;
+   ADP_Stopped_DivisionByZero      : constant Exit_Reason := 16#20028#;
+   ADP_Stopped_OSSpecific          : constant Exit_Reason := 16#20029#;
+
+   type Exit_Subcode is range -Memory_Size / 2 .. (Memory_Size / 2) - 1 with
+     Size => Word_Size;
+
+   procedure SH_Exit (Reason : Exit_Reason; Subcode : Exit_Subcode);
+   --  Report an exception to the debugger directly.
+   --
+   --  No return is expected from these calls. However, it is possible for
+   --  the debugger to request that the application continues by performing an
+   --  RDI_Execute request or equivalent, in which case this procedure
+   --  returns.
+   --
+   --  The meaning of the subcode depends on the reason code. In particular,
+   --  for ADP_Stopped_ApplicationExit the subcode is the exit status code.
+   --  Note that the subcode is ignored on 32-bit semihosting implementations.
+
    procedure Put (Item : Character);
    --  Put a character on the console
 

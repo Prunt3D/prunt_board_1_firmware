@@ -7,7 +7,7 @@
 --                                 S p e c                                  --
 --                        (QNX-ARM/Aarch64 Version)                         --
 --                                                                          --
---          Copyright (C) 1992-2022, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2023, Free Software Foundation, Inc.         --
 --                                                                          --
 -- This specification is derived from the Ada Reference Manual for use with --
 -- GNAT. The copyright notice above, and the license provisions that follow --
@@ -54,7 +54,7 @@ pragma Restrictions (No_Use_Of_Pragma => Attach_Handler);
 pragma Restrictions (No_Specification_Of_Aspect => Attach_Handler);
 --  This pragma is not supported by the Ravenscar Cert profile
 
-pragma Profile (Ravenscar);
+pragma Profile (Jorvik);
 
 package System is
    pragma Pure;
@@ -117,26 +117,26 @@ package System is
 
    --  Priority-related Declarations (RM D.1)
 
-   --  System priority is Ada priority + 1, so lies in the range 1 .. 63.
-   --
    --  If the scheduling policy is SCHED_FIFO or SCHED_RR the runtime makes use
    --  of the entire range provided by the system.
    --
    --  If the scheduling policy is SCHED_OTHER the only valid system priority
    --  is 1 and other values are simply ignored.
 
-   Max_Priority           : constant Positive := 61;
-   Max_Interrupt_Priority : constant Positive := 62;
+   Max_Priority           : constant Positive := 62;
+   Max_Interrupt_Priority : constant Positive := 63;
 
-   subtype Any_Priority       is Integer      range  0 .. 62;
-   subtype Priority           is Any_Priority range  0 .. 61;
-   subtype Interrupt_Priority is Any_Priority range 62 .. 62;
+   subtype Any_Priority       is Integer      range  1 .. 63;
+   subtype Priority           is Any_Priority range  1 .. 62;
+   subtype Interrupt_Priority is Any_Priority range 63 .. 63;
 
-   Default_Priority : constant Priority := 30;
+   Default_Priority : constant Priority := 10;
 
 private
 
    type Address is mod Memory_Size;
+   for Address'Size use Standard'Address_Size;
+
    Null_Address : constant Address := 0;
 
    --------------------------------------
@@ -151,7 +151,7 @@ private
 
    Backend_Divide_Checks     : constant Boolean := False;
    Backend_Overflow_Checks   : constant Boolean := True;
-   Command_Line_Args         : constant Boolean := False;
+   Command_Line_Args         : constant Boolean := True;
    Configurable_Run_Time     : constant Boolean := True;
    Denorm                    : constant Boolean := True;
    Duration_32_Bits          : constant Boolean := False;

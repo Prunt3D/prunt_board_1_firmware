@@ -7,6 +7,6 @@
 gnatinspect.db
 b__*.ad[bs]
 .#*
-*.a
 obj
 install
+*.a

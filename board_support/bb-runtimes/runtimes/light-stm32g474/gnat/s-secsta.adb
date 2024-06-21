@@ -100,7 +100,6 @@ package body System.Secondary_Stack is
       Alignment    : SSE.Storage_Count := Standard'Maximum_Alignment)
    is
       use type System.Storage_Elements.Storage_Count;
-      use type System.Storage_Elements.Integer_Address;
 
       function Align_Addr (Addr : Address) return Address;
       pragma Inline (Align_Addr);
@@ -111,9 +110,6 @@ package body System.Secondary_Stack is
       ----------------
 
       function Align_Addr (Addr : Address) return Address is
-         Int_Algn : constant SSE.Integer_Address :=
-           SSE.Integer_Address (Alignment);
-         Int_Addr : constant SSE.Integer_Address := SSE.To_Integer (Addr);
       begin
 
          --  L : Alignment
@@ -128,7 +124,7 @@ package body System.Secondary_Stack is
          --                  |
          --                Addr + L - (Addr mod L)
 
-         return SSE.To_Address (Int_Addr + Int_Algn - (Int_Addr mod Int_Algn));
+         return Addr + (Alignment - (Addr mod Alignment));
       end Align_Addr;
 
       Max_Align   : constant SS_Ptr := SS_Ptr (Standard'Maximum_Alignment);
@@ -225,6 +221,9 @@ package body System.Secondary_Stack is
       use Parameters;
 
    begin
+      pragma Annotate (Gnatcheck, Exempt_On, "Improper_Returns",
+                       "early returns for performance");
+
       --  If the size of the secondary stack for a task has been specified via
       --  the Secondary_Stack_Size aspect, then the compiler has allocated the
       --  stack at compile time and the task create call will provide a pointer
@@ -302,6 +301,8 @@ package body System.Secondary_Stack is
 
       Stack.Top := 1;
       Stack.Max := 1;
+
+      pragma Annotate (Gnatcheck, Exempt_Off, "Improper_Returns");
    end SS_Init;
 
    -------------

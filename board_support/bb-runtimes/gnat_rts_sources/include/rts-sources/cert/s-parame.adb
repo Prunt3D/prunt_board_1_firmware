@@ -63,6 +63,8 @@ package body System.Parameters is
          else
             return 20 * 1024;
          end if;
+      elsif Size_Type (Default_Stack_Size) < Minimum_Stack_Size then
+         return Minimum_Stack_Size;
       else
          return Size_Type (Default_Stack_Size);
       end if;

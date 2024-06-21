@@ -10,4 +10,4 @@ website = ""
 tags = []
 
 [[depends-on]]
-gnat_arm_elf = "^13.2.1"
+gnat_arm_elf = "^14.1.3"

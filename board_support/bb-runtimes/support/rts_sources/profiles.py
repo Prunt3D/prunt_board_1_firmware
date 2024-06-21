@@ -83,6 +83,8 @@ class RTSProfiles(object):
         ret['Add_Image_Char'] = "yes"
         ret['Add_Image_Util'] = "yes"
 
+        ret['Add_Value_Spec'] = 'yes'
+        ret['Add_Value_LL_Spec'] = 'yes'
         ret['Add_Value_Bool'] = "yes"
         ret['Add_Value_Enum'] = "yes"
         ret['Add_Value_Decimal'] = "yes"
@@ -103,6 +105,7 @@ class RTSProfiles(object):
             ret['Add_Image_LLL_Decimal'] = "yes"
             ret['Add_Image_LLL_Fixed'] = "yes"
 
+            ret['Add_Value_LLL_Spec'] = 'yes'
             ret['Add_Value_LLL_Int'] = "yes"
             ret['Add_Value_LLL_Decimal'] = "yes"
             ret['Add_Value_LLL_Fixed'] = "yes"
@@ -148,10 +151,20 @@ class RTSProfiles(object):
         else:
             ret['Has_FPU'] = 'no'
 
+        if self.config.has_command_line_arguments:
+            ret['Add_Command_Line'] = 'yes'
+        else:
+            ret['Add_Command_Line'] = 'no'
+
         if self.config.has_libc(profile):
             ret['Has_libc'] = 'yes'
         else:
             ret['Has_libc'] = 'no'
+
+        if self.config.has_cheri:
+            ret['Has_CHERI'] = 'yes'
+        else:
+            ret['Has_CHERI'] = 'no'
 
         if self.config.use_certifiable_packages:
             ret['Certifiable_Packages'] = 'yes'

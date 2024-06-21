@@ -29,26 +29,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Interfaces;               use Interfaces;
-with System.Machine_Code;      use System.Machine_Code;
-with Ada.Unchecked_Conversion;
+with Interfaces;              use Interfaces;
+with System.Machine_Code;     use System.Machine_Code;
+with System.Storage_Elements; use System.Storage_Elements;
 
 package body System.Semihosting is
 
-   type SH_Word is new Interfaces.Unsigned_32;
+   type SH_Word is mod System.Memory_Size with
+     Size => System.Word_Size;
+   --  Native word type used to hold the result of a semihosting call
 
-   function To_SH_Word is new Ada.Unchecked_Conversion
-     (Source => System.Address, Target => SH_Word);
-
-   function Generic_SH_Call (R0, R1 : SH_Word) return SH_Word;
-   --  Handles the low-level part of semihosting, setting the registers and
-   --  executing a breakpoint instruction.
-
-   subtype Syscall is SH_Word;
+   type Syscall is new Interfaces.Unsigned_32;
 
    SYS_WRITEC : constant Syscall := 16#03#;
    SYS_WRITE0 : constant Syscall := 16#04#;
    SYS_READC  : constant Syscall := 16#07#;
+   SYS_EXIT   : constant Syscall := 16#18#;
+
+   function Generic_SH_Call
+     (Op    : Syscall;
+      Param : System.Address)
+      return SH_Word;
+   --  Handles the low-level part of semihosting, setting the registers and
+   --  executing a breakpoint instruction.
 
    --  Output buffer
 
@@ -73,20 +76,10 @@ package body System.Semihosting is
    -- Generic_SH_Call --
    ---------------------
 
-   function Generic_SH_Call (R0, R1 : SH_Word) return SH_Word is
-      Ret : SH_Word;
-   begin
-      Asm ("mov r0, %1" & ASCII.LF & ASCII.HT &
-           "mov r1, %2" & ASCII.LF & ASCII.HT &
-           "bkpt #0xAB" & ASCII.LF & ASCII.HT &
-           "mov %0, r0",
-           Outputs  => (SH_Word'Asm_Output ("=r", Ret)),
-           Inputs   => (SH_Word'Asm_Input ("r", R0),
-                        SH_Word'Asm_Input ("r", R1)),
-           Volatile => True,
-           Clobber => ("r1, r0"));
-      return Ret;
-   end Generic_SH_Call;
+   function Generic_SH_Call
+     (Op    : Syscall;
+      Param : System.Address)
+      return SH_Word is separate;
 
    -----------
    -- Flush --
@@ -101,12 +94,49 @@ package body System.Semihosting is
          Buffer (Buffer_Index) := 0;
 
          --  Send the buffer with a semihosting call
-         Unref := Generic_SH_Call (SYS_WRITE0, To_SH_Word (Buffer'Address));
+         Unref := Generic_SH_Call (SYS_WRITE0, Buffer'Address);
 
          --  Reset buffer index
          Buffer_Index := Buffer'First;
       end if;
    end Flush;
+
+   -------------
+   -- SH_Exit --
+   -------------
+
+   procedure SH_Exit (Reason : Exit_Reason; Subcode : Exit_Subcode) is
+      Is_32bit : constant Boolean := Word_Size = 32;
+
+      Unref : SH_Word;
+      pragma Unreferenced (Unref);
+
+   begin
+      if Is_32bit then
+         --  On 32-bit systems the parameter register is set to the reason
+         --  code describing the cause of the trap. The subcode is not used.
+
+         Unref := Generic_SH_Call
+                    (SYS_EXIT, To_Address (Integer_Address (Reason)));
+
+      else
+         --  On 64-bit systems the parameter register is a pointer to a
+         --  two-field argument block containing the reason and subcode.
+
+         declare
+            type Sys_Exit_Params is record
+               Reason  : Exit_Reason;
+               Subcode : Exit_Subcode;
+            end record with
+              Volatile,
+              Size => Word_Size * 2;
+
+            Params : aliased constant Sys_Exit_Params := (Reason, Subcode);
+         begin
+            Unref := Generic_SH_Call (SYS_EXIT, Params'Address);
+         end;
+      end if;
+   end SH_Exit;
 
    ---------
    -- Put --
@@ -134,7 +164,7 @@ package body System.Semihosting is
 
          --  Send the ASCII.NUL with a WRITEC semihosting call
          C := Item;
-         Unref := Generic_SH_Call (SYS_WRITEC, To_SH_Word (C'Address));
+         Unref := Generic_SH_Call (SYS_WRITEC, C'Address);
 
       else
 
@@ -167,7 +197,7 @@ package body System.Semihosting is
    procedure Get (Item : out Character) is
       Ret : SH_Word;
    begin
-      Ret := Generic_SH_Call (SYS_READC, 0);
+      Ret := Generic_SH_Call (SYS_READC, System.Null_Address);
       Item := Character'Val (Ret);
    end Get;
 

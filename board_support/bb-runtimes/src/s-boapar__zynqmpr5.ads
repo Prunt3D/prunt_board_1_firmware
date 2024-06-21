@@ -53,166 +53,111 @@ package System.Board_Parameters is
             Size_And_Enable =>
               (Sub_Region_Disable => 2#1111_1111#,
                Size               => MD.Size_4GiB,
-               Enable             => True,
-               Reserved_1         => 0,
-               Reserved_2         => 0),
+               Enable             => True),
             Access_Control  =>
               (XN                 => MD.Execute_Never,
                AP                 => MD.Privileged_NA_User_NA,
-               TEX_S_C_B          => MD.Strongly_Ordered,
-               Reserved_1         => 0,
-               Reserved_2         => 0,
-               Reserved_3         => 0)),
+               TEX_S_C_B          => MD.Strongly_Ordered)),
       --  DDR
       1 => (Base_Address => 16#0000_0000#,
             Size_And_Enable =>
               (Sub_Region_Disable => 0,
                Size               => MD.Size_1GiB,
-               Enable             => True,
-               Reserved_1         => 0,
-               Reserved_2         => 0),
+               Enable             => True),
             Access_Control  =>
               (XN                 => MD.Execute_All,
                AP                 => MD.Privileged_RW_User_RW,
-               TEX_S_C_B          => MD.Outer_Inner_WB_WA_NS,
-               Reserved_1         => 0,
-               Reserved_2         => 0,
-               Reserved_3         => 0)),
+               TEX_S_C_B          => MD.Outer_Inner_WB_WA_NS)),
       --  Strongly ordered memory for PL interface
       2 => (Base_Address => 16#8000_0000#,
             Size_And_Enable =>
               (Sub_Region_Disable => 0,
                Size               => MD.Size_1GiB,
-               Enable             => True,
-               Reserved_1         => 0,
-               Reserved_2         => 0),
+               Enable             => True),
             Access_Control  =>
               (XN                 => MD.Execute_Never,
                AP                 => MD.Privileged_RW_User_RW,
-               TEX_S_C_B          => MD.Strongly_Ordered,
-               Reserved_1         => 0,
-               Reserved_2         => 0,
-               Reserved_3         => 0)),
+               TEX_S_C_B          => MD.Strongly_Ordered)),
       --  QSPI
       3 => (Base_Address => 16#C000_0000#,
             Size_And_Enable =>
               (Sub_Region_Disable => 0,
                Size               => MD.Size_512MiB,
-               Enable             => True,
-               Reserved_1         => 0,
-               Reserved_2         => 0),
+               Enable             => True),
             Access_Control  =>
               (XN                 => MD.Execute_All,
                AP                 => MD.Privileged_RO_User_RO,
-               TEX_S_C_B          => MD.Non_Shareable_Device,
-               Reserved_1         => 0,
-               Reserved_2         => 0,
-               Reserved_3         => 0)),
+               TEX_S_C_B          => MD.Non_Shareable_Device)),
       --  PCIe Low
       4 => (Base_Address => 16#E000_0000#,
             Size_And_Enable =>
               (Sub_Region_Disable => 0,
                Size               => MD.Size_256MiB,
-               Enable             => True,
-               Reserved_1         => 0,
-               Reserved_2         => 0),
+               Enable             => True),
             Access_Control  =>
               (XN                 => MD.Execute_Never,
                AP                 => MD.Privileged_RW_User_RW,
-               TEX_S_C_B          => MD.Non_Shareable_Device,
-               Reserved_1         => 0,
-               Reserved_2         => 0,
-               Reserved_3         => 0)),
+               TEX_S_C_B          => MD.Non_Shareable_Device)),
       --  STM_CORESIGHT
       5 => (Base_Address => 16#F800_0000#,
             Size_And_Enable =>
               (Sub_Region_Disable => 0,
                Size               => MD.Size_16MiB,
-               Enable             => True,
-               Reserved_1         => 0,
-               Reserved_2         => 0),
+               Enable             => True),
             Access_Control  =>
               (XN                 => MD.Execute_Never,
                AP                 => MD.Privileged_RW_User_RW,
-               TEX_S_C_B          => MD.Non_Shareable_Device,
-               Reserved_1         => 0,
-               Reserved_2         => 0,
-               Reserved_3         => 0)),
+               TEX_S_C_B          => MD.Non_Shareable_Device)),
       --  RPU_A53_GIC
       6 => (Base_Address => 16#F900_0000#,
             Size_And_Enable =>
               (Sub_Region_Disable => 0,
                Size               => MD.Size_1MiB,
-               Enable             => True,
-               Reserved_1         => 0,
-               Reserved_2         => 0),
+               Enable             => True),
             Access_Control  =>
               (XN                 => MD.Execute_Never,
                AP                 => MD.Privileged_RW_User_RW,
-               TEX_S_C_B          => MD.Non_Shareable_Device,
-               Reserved_1         => 0,
-               Reserved_2         => 0,
-               Reserved_3         => 0)),
+               TEX_S_C_B          => MD.Non_Shareable_Device)),
       --  FPS slaves
       7 => (Base_Address => 16#FD00_0000#,
             Size_And_Enable =>
               (Sub_Region_Disable => 0,
                Size               => MD.Size_16MiB,
-               Enable             => True,
-               Reserved_1         => 0,
-               Reserved_2         => 0),
+               Enable             => True),
             Access_Control  =>
               (XN                 => MD.Execute_Never,
                AP                 => MD.Privileged_RW_User_RW,
-               TEX_S_C_B          => MD.Non_Shareable_Device,
-               Reserved_1         => 0,
-               Reserved_2         => 0,
-               Reserved_3         => 0)),
+               TEX_S_C_B          => MD.Non_Shareable_Device)),
       --  Upper LPS slaves
       8 => (Base_Address => 16#FE00_0000#,
             Size_And_Enable =>
               (Sub_Region_Disable => 0,
                Size               => MD.Size_16MiB,
-               Enable             => True,
-               Reserved_1         => 0,
-               Reserved_2         => 0),
+               Enable             => True),
             Access_Control  =>
               (XN                 => MD.Execute_Never,
                AP                 => MD.Privileged_RW_User_RW,
-               TEX_S_C_B          => MD.Non_Shareable_Device,
-               Reserved_1         => 0,
-               Reserved_2         => 0,
-               Reserved_3         => 0)),
+               TEX_S_C_B          => MD.Non_Shareable_Device)),
       --  Lower LPS slaves
       9 => (Base_Address => 16#FF00_0000#,
             Size_And_Enable =>
               (Sub_Region_Disable => 0,
                Size               => MD.Size_16MiB,
-               Enable             => True,
-               Reserved_1         => 0,
-               Reserved_2         => 0),
+               Enable             => True),
             Access_Control  =>
               (XN                 => MD.Execute_Never,
                AP                 => MD.Privileged_RW_User_RW,
-               TEX_S_C_B          => MD.Non_Shareable_Device,
-               Reserved_1         => 0,
-               Reserved_2         => 0,
-               Reserved_3         => 0)),
+               TEX_S_C_B          => MD.Non_Shareable_Device)),
       --  OCM Ram
       10 => (Base_Address => 16#FFFC_0000#,
              Size_And_Enable =>
                (Sub_Region_Disable => 0,
                 Size               => MD.Size_256KiB,
-                Enable             => True,
-                Reserved_1         => 0,
-                Reserved_2         => 0),
+                Enable             => True),
              Access_Control  =>
                (XN                 => MD.Execute_Never,
                 AP                 => MD.Privileged_RW_User_RW,
-                TEX_S_C_B          => MD.Outer_Inner_WB_WA_NS,
-                Reserved_1         => 0,
-                Reserved_2         => 0,
-                Reserved_3         => 0))
+                TEX_S_C_B          => MD.Outer_Inner_WB_WA_NS))
      );
 
 end System.Board_Parameters;

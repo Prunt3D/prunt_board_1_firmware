@@ -54,9 +54,11 @@ pragma Assertion_Policy (Pre            => Ignore,
 with Ada.Strings.Maps; use type Ada.Strings.Maps.Character_Mapping_Function;
 with Ada.Strings.Search;
 
-package Ada.Strings.Superbounded with SPARK_Mode is
+package Ada.Strings.Superbounded with
+  SPARK_Mode,
+  Always_Terminates
+is
    pragma Preelaborate;
-   pragma Annotate (GNATprove, Always_Return, Superbounded);
 
    --  Type Bounded_String in Ada.Strings.Bounded.Generic_Bounded_Length is
    --  derived from Super_String, with the constraint of the maximum length.
@@ -72,7 +74,7 @@ package Ada.Strings.Superbounded with SPARK_Mode is
       --  Leaving it out is more efficient.
    end record
    with
-     Predicate =>
+     Ghost_Predicate =>
        Current_Length <= Max_Length
          and then Data (1 .. Current_Length)'Initialized;
 

@@ -121,11 +121,10 @@ package body Ada.Tags is
       --  a type, but it's better to be explicit about returning No_Tag in
       --  this case.
 
-      if TSD.Idepth = 0 then
-         return No_Tag;
-      else
-         return TSD.Tags_Table (1);
-      end if;
+      return
+         (if TSD.Idepth = 0 then No_Tag
+                            else TSD.Tags_Table (1)
+         );
    end Parent_Tag;
 
 end Ada.Tags;

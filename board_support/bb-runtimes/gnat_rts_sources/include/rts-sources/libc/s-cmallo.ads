@@ -60,8 +60,7 @@ private
    --  Get rid of strict aliasing error message because we will convert this
    --  access type to address and Free_Cell_Acc.
 
-   subtype Cell_Size_T is size_t
-     range 0 .. 2 ** (Standard'Address_Size - 2);
+   subtype Cell_Size_T is size_t range 0 .. Memory_Size / 4;
 
    type Cell_Type is record
       Prev : Cell_Acc;

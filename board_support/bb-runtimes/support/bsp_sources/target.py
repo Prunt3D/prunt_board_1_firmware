@@ -1,7 +1,7 @@
 import copy
 import sys
 
-from support import readfile, is_string
+from support import readfile, is_string, Compiler, target_compiler
 from support.files_holder import FilesHolder
 from support.bsp_sources.archsupport import ArchSupport
 from support.rts_sources.profiles import RTSProfiles
@@ -90,6 +90,11 @@ class TargetConfiguration(object):
         return False
 
     @property
+    def has_command_line_arguments(self):
+        """True if the OS supports command line arguments"""
+        return False
+
+    @property
     def has_compare_and_swap(self):
         """True if the hardware supports an atomic compare-and-swap function.
 
@@ -101,6 +106,11 @@ class TargetConfiguration(object):
         expects the support: this may thus generate invalid instructions.
         """
         return True
+
+    @property
+    def has_cheri(self):
+        """True if the hardware supports CHERI instructions"""
+        return False
 
     def has_libc(self, profile):
         """Whether libc is available and used on the target"""
@@ -152,23 +162,33 @@ class Target(TargetConfiguration, ArchSupport):
 
         self.rts_options = RTSProfiles(self)
 
+        # Flags for keys in target_options.gpr.in must end in _flags. This is
+        # to avoid duplicating the list of flags in support/bsp_sources/installer.py.
         self.build_flags = {'source_dirs': None,
-                            'common_flags': ['-fcallgraph-info=su,da',
-                                             '-ffunction-sections',
+                            'common_flags': ['-ffunction-sections',
                                              '-fdata-sections'],
                             'common_gnarl_flags': [],
+                            'common_debug_flags': ['-g'],
                             'asm_flags': [],
-                            'c_flags': ['-DIN_RTS', '-Dinhibit_libc']}
+                            'c_flags': ['-DIN_RTS', '-Dinhibit_libc', '-DLIGHT_RUNTIME']}
+        # GNAT-LLVM doesn't support -fcallgraph-info
+        if target_compiler() != Compiler.gnat_llvm:
+            self.build_flags['common_flags'].append('-fcallgraph-info=su,da')
 
         # Add the following compiler switches to runtime.xml for all targets:
         #
-        #   -fno-tree-loop-distribute-patterns:
+        #   -fno-tree-loop-distribute-patterns (GNAT only):
         #     This optimization looks for code patterns that can be replaced
         #     with library calls, for example memset and strlen. This creates
         #     a hidden runtime dependency that is considered undesirable by many
         #     of our customers. strlen is particularly problematic, as its not
         #     provided in our light and light-tasking runtimes.
-        self.global_compiler_switches = ('-fno-tree-loop-distribute-patterns',)
+        if target_compiler() == Compiler.gnat:
+            self.global_compiler_switches = (
+                '-fno-tree-loop-distribute-patterns',
+            )
+        else:
+            self.global_compiler_switches = ()
 
         readme = self.readme_file
         if readme:
@@ -350,7 +370,6 @@ class Target(TargetConfiguration, ArchSupport):
             # for __errno or other, libc on libgnat for sbrk, libgnat and
             # libgnarl on each other...
 
-            # -lgcc_eh removed. Unsure what it is used for.
             ret += blank + \
                 '"-nostartfiles", "-nolibc", ' + \
                 '"-Wl,--start-group,-lgnarl,-lgnat,-lc,-lgcc,--end-group",'

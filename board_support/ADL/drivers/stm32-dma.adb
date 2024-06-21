@@ -1348,9 +1348,9 @@ package body STM32.DMA is
    is
    begin
       if This'Address = DMA1_Periph'Address then
-         return Boolean'Val (DMAMUX_Periph.CSR.SOF and 2 ** Stream'Enum_Rep);
+         return (DMAMUX_Periph.CSR.SOF and 2 ** Stream'Enum_Rep) /= 0;
       else --  This'Address = DMA2_Periph'Address
-         return Boolean'Val (DMAMUX_Periph.CSR.SOF and Shift_Left (2 ** Stream'Enum_Rep, 8));
+         return (DMAMUX_Periph.CSR.SOF and Shift_Left (2 ** Stream'Enum_Rep, 8)) /= 0;
       end if;
    end Synchronization_Overrun_Status;
 
@@ -1491,7 +1491,7 @@ package body STM32.DMA is
       return Boolean
    is
    begin
-      return Boolean'Val (DMAMUX_Periph.RGSR.OF_k and 2 ** Channel'Enum_Rep);
+      return (DMAMUX_Periph.RGSR.OF_k and 2 ** Channel'Enum_Rep) /= 0;
    end Trigger_Overrun_Status;
 
    ----------------------------------
