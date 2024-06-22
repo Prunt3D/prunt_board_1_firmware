@@ -16,7 +16,7 @@ package body Step_Generator is
          Set_Counter_Operating_Mode (Timer, Continuous);
          Configure_Register_Preload_Update (Timer, Master_Update, True);
          Set_Counter_Reset_Event (Timer, Master_Timer_Period, True);
-         Set_Period (Timer, Step_Count_To_Period (1));
+         Set_Period (Timer, Step_Count_To_Period (0));
 
          --  Direction
          Configure_GTC_PWM_Mode (Timer, CMP1, Counter_Equal_Compare);
