@@ -47,10 +47,10 @@ package Hardware_Configuration is
    --  Input_Switches
 
    Switch_Points : constant array (Input_Switch_Name) of GPIO_Point :=
-     (Endstop_1        => PA3,
+     (Endstop_1        => PA7,
       Endstop_2        => PA4,
       Endstop_3        => PA5,
-      Endstop_4        => PA7,
+      Endstop_4        => PA3,
       Stepper_1_Diag_0 => PA0,
       Stepper_2_Diag_0 => PC15,
       Stepper_3_Diag_0 => PC13,
