@@ -189,27 +189,33 @@ package body Server_Communication is
                         if RX_Message.Content.Safe_Stop_After then
                            In_Conditional_Skip_Mode := False;
                         end if;
-                     elsif RX_Message.Content.Kind = Looping_Step_Delta_List_Kind then
-                        Step_Generator.Enqueue_Start_Loop;
+                     else
+                        if RX_Message.Content.Kind = Looping_Step_Delta_List_Kind then
+                           Step_Generator.Enqueue_Start_Loop;
+                        end if;
+
+                        for I in Step_Delta_List_Index'First .. RX_Message.Content.Last_Index loop
+                           Step_Generator.Enqueue (RX_Message.Content.Steps (I));
+                        end loop;
+
+                        if RX_Message.Content.Kind = Looping_Step_Delta_List_Kind then
+                           Step_Generator.Enqueue_Stop_Loop;
+                        end if;
+
+                        if RX_Message.Content.Safe_Stop_After then
+                           Step_Generator.Enqueue ((Dirs => (others => Forward), Steps => (others => 0)));
+                           Step_Generator.Force_Start;
+                        end if;
+
+                        for Heater in Heater_Name loop
+                           Heaters.Set_Setpoint (Heater, Heaters.Celcius (RX_Message.Content.Heater_Targets (Heater)));
+                        end loop;
+                        for Fan in Fan_Name loop
+                           Fans.Set_PWM (Fan, RX_Message.Content.Fan_Targets (Fan));
+                        end loop;
+                        --  Setting fan and heater targets here means that they are set early, but that likely will not
+                        --  be an issue since the total buffer size is less than a second.
                      end if;
-                     for I in Step_Delta_List_Index'First .. RX_Message.Content.Last_Index loop
-                        Step_Generator.Enqueue (RX_Message.Content.Steps (I));
-                     end loop;
-                     if RX_Message.Content.Kind = Looping_Step_Delta_List_Kind then
-                        Step_Generator.Enqueue_Stop_Loop;
-                     end if;
-                     if RX_Message.Content.Safe_Stop_After then
-                        Step_Generator.Enqueue ((Dirs => (others => Forward), Steps => (others => 0)));
-                        Step_Generator.Force_Start;
-                     end if;
-                     for Heater in Heater_Name loop
-                        Heaters.Set_Setpoint (Heater, Heaters.Celcius (RX_Message.Content.Heater_Targets (Heater)));
-                     end loop;
-                     for Fan in Fan_Name loop
-                        Fans.Set_PWM (Fan, RX_Message.Content.Fan_Targets (Fan));
-                     end loop;
-                     --  Setting fan and heater targets here means that they are set early, but that likely will not
-                     --  be an issue since the total buffer size is less than a second.
                   when Condition_Check_Kind =>
                      Step_Generator.Wait_Until_Idle;
                      if Input_Switches.Get_State (RX_Message.Content.Conditon_Input_Switch) =
@@ -305,7 +311,7 @@ package body Server_Communication is
       Set_Data_Input_Order (Comms_CRC_Unit, Word_Reversed);
       Set_Data_Output_Order (Comms_CRC_Unit, Bit_Reversed);
       Update_CRC (Comms_CRC_Unit, CRC_Input, CRC_Output);
-      TX_Message.Checksum := CRC32 (CRC_Output xor 16#FFFFFFFF#);
+      TX_Message.Checksum := CRC32 (CRC_Output xor 16#FFFF_FFFF#);
    end Set_TX_Message_CRC;
 
    procedure Transmit_TX_Message is
