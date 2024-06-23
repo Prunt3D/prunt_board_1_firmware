@@ -141,10 +141,18 @@ package body Steppers is
 
       --  STM32G474 has a 8 byte FIFO (Table 345, RM0440 Rev 8), so no need for DMA here.
       TMC_UART_Internal.CR1.TE := False;
+      TMC_UART_Internal.CR1.RE := False;
       for Byte of Input loop
          Transmit (TMC_UART, UInt9 (Byte));
       end loop;
       TMC_UART_Internal.CR1.TE := True;
+
+      --  Keep the receiver off until the transmission is done.
+      --  TODO: We could verify the written data here.
+      loop
+         exit when TMC_UART_Internal.ISR.TXFE and TMC_UART_Internal.ISR.TC;
+      end loop;
+      TMC_UART_Internal.CR1.RE := True;
    end UART_Write;
 
 end Steppers;
