@@ -151,7 +151,7 @@ package body Server_Communication is
             Set_Data_Output_Order (Comms_CRC_Unit, Bit_Reversed);
             Update_CRC (Comms_CRC_Unit, CRC_Input, CRC_Output);
 
-            if CRC32 (CRC_Output xor 16#FFFFFFFF#) /= RX_Message.Checksum then
+            if CRC32 (CRC_Output xor 16#FFFF_FFFF#) /= RX_Message.Checksum then
                Transmit_String_Line
                  ("Bad CRC, expected " & CRC_Output'Image & " but got " & RX_Message.Checksum'Image);
                --  This will cause the last message to be resent, which will cause the server to resend its last

@@ -63,7 +63,7 @@ package body Steppers is
       Receive_Failed : out Byte_Boolean;
       Output         : out TMC2240_UART_Data_Byte_Array)
    is
-      RX_Buffer  : array (1 .. 12) of UInt8 := (others => 0);
+      RX_Buffer : array (1 .. 12) of UInt8 := (others => 0);
       --  Extra bytes for transmitted bytes since we are using half-duplex mode.
       Fail_Time : Time;
    begin
@@ -95,7 +95,8 @@ package body Steppers is
 
       Fail_Time := Clock + Seconds (1);
 
-      Outer : for I in RX_Buffer'Range loop
+      Outer :
+      for I in RX_Buffer'Range loop
          loop
             exit when Rx_Ready (TMC_UART);
             if Clock > Fail_Time then
