@@ -20,14 +20,18 @@ package body Step_Generator is
 
          --  Direction
          Configure_GTC_PWM_Mode (Timer, CMP1, Counter_Equal_Compare);
-         Configure_Channel_Output_Event (Timer, Output_1, Set_Event => Timer_Period, Reset_Event => Timer_Compare_1);
+         Configure_Channel_Output_Event (Timer, Output_1, Timer_Compare_1, Set_Event, True);
+         Configure_Channel_Output_Event (Timer, Output_1, Timer_Compare_2, Reset_Event, True);
          Set_Compare_Value (Timer, Compare_1, 0);
+         Set_Compare_Value (Timer, Compare_2, 0);
          Set_Channel_Output_Polarity (Timer, Output_1, High);
          Set_Channel_Output (Timer, Output_1, True);
 
          --  Step
          Configure_GTC_PWM_Mode (Timer, CMP3, Counter_Equal_Compare);
-         Configure_Channel_Output_Event (Timer, Output_2, Set_Event => Timer_Compare_3, Reset_Event => Timer_Period);
+         Configure_Channel_Output_Event (Timer, Output_2, Timer_Compare_3, Set_Event, True);
+         Configure_Channel_Output_Event (Timer, Output_2, Master_Period, Reset_Event, True);
+         Configure_Channel_Output_Event (Timer, Output_2, Timer_Period, Reset_Event, True);
          Set_Compare_Value (Timer, Compare_3, 150);
          Set_Channel_Output_Polarity (Timer, Output_2, High);
          Set_Channel_Output (Timer, Output_2, True);
@@ -175,17 +179,17 @@ package body Step_Generator is
          end if;
 
          Set_Period (STM32.Device.HRTimer_B, Step_Count_To_Period (Steps (Stepper_1)));
-         Set_Compare_Value (STM32.Device.HRTimer_B, Compare_1, (if Dirs (Stepper_1) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_B, Compare_2, (if Dirs (Stepper_1) = Forward then 0 else 60_000));
          Set_Period (STM32.Device.HRTimer_A, Step_Count_To_Period (Steps (Stepper_2)));
-         Set_Compare_Value (STM32.Device.HRTimer_A, Compare_1, (if Dirs (Stepper_2) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_A, Compare_2, (if Dirs (Stepper_2) = Forward then 0 else 60_000));
          Set_Period (STM32.Device.HRTimer_E, Step_Count_To_Period (Steps (Stepper_3)));
-         Set_Compare_Value (STM32.Device.HRTimer_E, Compare_1, (if Dirs (Stepper_3) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_E, Compare_2, (if Dirs (Stepper_3) = Forward then 0 else 60_000));
          Set_Period (STM32.Device.HRTimer_F, Step_Count_To_Period (Steps (Stepper_4)));
-         Set_Compare_Value (STM32.Device.HRTimer_F, Compare_1, (if Dirs (Stepper_4) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_F, Compare_2, (if Dirs (Stepper_4) = Forward then 0 else 60_000));
          Set_Period (STM32.Device.HRTimer_D, Step_Count_To_Period (Steps (Stepper_5)));
-         Set_Compare_Value (STM32.Device.HRTimer_D, Compare_1, (if Dirs (Stepper_5) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_D, Compare_2, (if Dirs (Stepper_5) = Forward then 0 else 60_000));
          Set_Period (STM32.Device.HRTimer_C, Step_Count_To_Period (Steps (Stepper_6)));
-         Set_Compare_Value (STM32.Device.HRTimer_C, Compare_1, (if Dirs (Stepper_6) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_C, Compare_2, (if Dirs (Stepper_6) = Forward then 0 else 60_000));
 
          if Step_Delta_Buffer_Loop_Enabled
            and then Step_Delta_Buffer_Reader_Index + 1 = Step_Delta_Buffer_Loop_End_Index
