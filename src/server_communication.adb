@@ -235,6 +235,8 @@ package body Server_Communication is
                      null;
                   when Wait_Until_Idle_Kind =>
                      Step_Generator.Wait_Until_Idle;
+                  when Wait_Until_Heater_Stable_Kind =>
+                     Heaters.Wait_Until_Stable (RX_Message.Content.Heater_To_Wait_For);
                   when Enable_Stepper_Kind =>
                      Steppers.Enable (RX_Message.Content.Stepper);
                   when Disable_Stepper_Kind =>

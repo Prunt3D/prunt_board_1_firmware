@@ -1,7 +1,8 @@
-with STM32.GPIO;   use STM32.GPIO;
-with HAL;          use HAL;
-with STM32.Device; use STM32.Device;
-with STM32.Timers; use STM32.Timers;
+with STM32.GPIO;    use STM32.GPIO;
+with HAL;           use HAL;
+with STM32.Device;  use STM32.Device;
+with STM32.Timers;  use STM32.Timers;
+with Ada.Real_Time; use Ada.Real_Time;
 
 package body Heaters is
 
@@ -130,6 +131,30 @@ package body Heaters is
             end;
       end case;
    end Update;
+
+   procedure Wait_Until_Stable (Heater : Heater_Name) is
+      Ctx : Context renames Contexts (Heater);
+   begin
+      case Ctx.Kind is
+         when Disabled_Kind =>
+            null;
+         when Bang_Bang_Kind =>
+            loop
+               exit when Ctx.Last_Temperature - Ctx.Setpoint < Ctx.Max_Delta;
+            end loop;
+         when PID_Kind =>
+            declare
+               Last_Bad_Time : Time := Clock;
+            begin
+               loop
+                  if Ctx.Last_Temperature - Ctx.Setpoint > 1.0 then
+                     Last_Bad_Time := Clock;
+                  end if;
+                  exit when Clock > Last_Bad_Time + Seconds (3);
+               end loop;
+            end;
+      end case;
+   end Wait_Until_Stable;
 
    procedure Set_PWM (Heater : Heater_Name; Scale : Float) is
    begin

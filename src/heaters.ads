@@ -23,6 +23,8 @@ package Heaters is
 
    function Get_PWM (Heater : Heater_Name) return Fixed_Point_PWM_Scale;
 
+   procedure Wait_Until_Stable (Heater : Heater_Name);
+
 private
 
    subtype PID_Scale is Float range 0.0 .. Float'Last;

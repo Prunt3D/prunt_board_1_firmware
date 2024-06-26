@@ -148,6 +148,7 @@ package Messages is
       TMC_Read_Kind,
       Status_Kind,
       Wait_Until_Idle_Kind,
+      Wait_Until_Heater_Stable_Kind,
       Enable_Stepper_Kind,
       Disable_Stepper_Kind,
       Enable_High_Power_Switch_Kind,
@@ -184,6 +185,8 @@ package Messages is
             null;
          when Wait_Until_Idle_Kind =>
             null;
+         when Wait_Until_Heater_Stable_Kind =>
+            Heater_To_Wait_For : Heater_Name;
          when Enable_Stepper_Kind | Disable_Stepper_Kind =>
             Stepper : Stepper_Name;
          when Enable_High_Power_Switch_Kind | Disable_High_Power_Switch_Kind =>
@@ -210,6 +213,7 @@ package Messages is
       Skip_If_Hit_State     at 17 range 0 ..       7;
       TMC_Write_Data        at 16 range 0 ..      63;
       TMC_Read_Data         at 16 range 0 ..      31;
+      Heater_To_Wait_For    at 16 range 0 ..       7;
       Stepper               at 16 range 0 ..       7;
    end record;
 
