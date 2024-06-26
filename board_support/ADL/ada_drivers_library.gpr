@@ -34,7 +34,7 @@ library project Ada_Drivers_Library is
          when "Production" =>
             for Default_Switches ("Ada") use
               ("-O3",     --  Optimization level 3
-               "-gnatp",  --  Supress checks
+               -- "-gnatp",  --  Supress checks
                "-gnata", --  Enable assertions
                "-gnatn"); --  Enable inlining
          when "Debug" =>
