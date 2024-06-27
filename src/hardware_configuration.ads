@@ -74,6 +74,7 @@ package Hardware_Configuration is
    Heater_GPIO_Points      : constant array (Heater_Name) of GPIO_Point := (Heater_1 => PB7, Heater_2 => PA15);
    Heater_GPIO_AFs         : constant array (Heater_Name) of GPIO_Alternate_Function       :=
      (Heater_1 => GPIO_AF_TIM4_2, Heater_2 => GPIO_AF_TIM8_2);
+   --  Heaters package also uses IWDG.
 
    --  High_Power_Switch
 

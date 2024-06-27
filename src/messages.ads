@@ -77,7 +77,12 @@ package Messages is
       Dirs  : Step_Delta_Dirs;
       Steps : Step_Delta_Steps;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 56;
+
+   for Step_Delta use record
+      Dirs  at 0 range 0 ..  7;
+      Steps at 1 range 0 .. 47;
+   end record;
 
    type Step_Delta_List is array (Step_Delta_List_Index) of Step_Delta with
      Pack, Scalar_Storage_Order => System.Low_Order_First;
@@ -93,6 +98,9 @@ package Messages is
    type Fixed_Point_Celcius is delta 2.0**(-5) range -1_000.0 .. 1_000.0 with
      Size => 16;
 
+   type Fixed_Point_Seconds is delta 2.0**(-5) range 0.0 .. 2_000.0 with
+     Size => 16;
+
    type Heater_Target_List is array (Heater_Name) of Fixed_Point_Celcius with
      Pack, Scalar_Storage_Order => System.Low_Order_First;
 
@@ -100,11 +108,15 @@ package Messages is
      Size => 32;
 
    type Heater_Parameters (Kind : Heater_Kind := Disabled_Kind) is record
+      Max_Cumulative_Error : Fixed_Point_Celcius;
+      Check_Gain_Time      : Fixed_Point_Seconds;
+      Check_Minimum_Gain   : Fixed_Point_Celcius;
+      Hysteresis           : Fixed_Point_Celcius;
       case Kind is
          when Disabled_Kind =>
             null;
          when Bang_Bang_Kind =>
-            Max_Delta : Fixed_Point_Celcius;
+            null;
          when PID_Kind =>
             Proportional_Scale          : Fixed_Point_PID_Parameter;
             Integral_Scale              : Fixed_Point_PID_Parameter;
@@ -112,7 +124,19 @@ package Messages is
             Proportional_On_Measurement : Byte_Boolean;
       end case;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 224;
+
+   for Heater_Parameters use record
+      Kind                        at  0 range 0 ..  7;
+      Max_Cumulative_Error        at  2 range 0 .. 15;
+      Check_Gain_Time             at  4 range 0 .. 15;
+      Check_Minimum_Gain          at  6 range 0 .. 15;
+      Hysteresis                  at  8 range 0 .. 15;
+      Proportional_Scale          at 12 range 0 .. 31;
+      Integral_Scale              at 16 range 0 .. 31;
+      Derivative_Scale            at 20 range 0 .. 31;
+      Proportional_On_Measurement at 24 range 0 ..  7;
+   end record;
 
    type Thermistor_Point is record
       Temp  : Fixed_Point_Celcius;
@@ -193,7 +217,7 @@ package Messages is
             null;
       end case;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 114_944;
 
    for Message_From_Server_Content use record
       Kind                  at  0 range 0 ..       7;
@@ -201,7 +225,7 @@ package Messages is
       Heater_Thermistors    at 16 range 0 ..      15;
       Thermistor_Curves     at 18 range 0 ..  98_303;
       Heater                at 16 range 0 ..       7;
-      Heater_Params         at 20 range 0 ..     159;
+      Heater_Params         at 20 range 0 ..     223;
       Loop_Input_Switch     at 16 range 0 ..       7;
       Loop_Until_State      at 17 range 0 ..       7;
       Fan_Targets           at 16 range 0 ..      63;
@@ -222,6 +246,7 @@ package Messages is
       Content  : Message_From_Server_Content;
    end record with
      Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 3_594 * 32;
+     --  Size should always be a multiple of 32 to allow for 32-bit CRC inputs on STM32.
 
    for Message_From_Server use record
       Checksum at 0 range 0 ..      31;
@@ -246,12 +271,12 @@ package Messages is
             TMC_Data           : TMC2240_UART_Data_Byte_Array;
       end case;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 448;
 
    for Message_From_Client_Content use record
       Kind               at  0 range 0 ..   7;
       Index              at  8 range 0 ..  63;
-      Temperatures       at 16 range 0 .. 127;
+      Temperatures       at 16 range 0 ..  63;
       Heaters            at 32 range 0 ..  31;
       Version            at 36 range 0 ..  31;
       ID                 at 40 range 0 .. 127;
@@ -264,6 +289,7 @@ package Messages is
       Content  : Message_From_Client_Content;
    end record with
      Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 16 * 32;
+     --  Size should always be a multiple of 32 to allow for 32-bit CRC inputs on STM32.
 
    for Message_From_Client use record
       Checksum at 0 range 0 ..  31;
