@@ -139,7 +139,7 @@ package body Heaters is
                Ctx.Output_Sum := @ + (Ctx.Integral_Scale * Error);
 
                if Ctx.Proportional_On_Measurement then
-                  Ctx.Output_Sum := @ - (Ctx.Proportional_Scale * Error);
+                  Ctx.Output_Sum := @ - (Ctx.Proportional_Scale * Delta_T);
                   Output         := 0.0;
                else
                   Output := Ctx.Proportional_Scale * Error;
@@ -151,7 +151,7 @@ package body Heaters is
                   Ctx.Output_Sum := 1.0;
                end if;
 
-               Output := @ - Ctx.Derivative_Scale * Delta_T;
+               Output := @ + Ctx.Output_Sum - Ctx.Derivative_Scale * Delta_T;
 
                if Output < 0.0 then
                   Output := 0.0;
