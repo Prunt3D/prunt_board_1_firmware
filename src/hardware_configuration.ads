@@ -70,7 +70,7 @@ package Hardware_Configuration is
    Heater_Timer_Channels   : constant array (Heater_Name) of Timer_Channel                 :=
      (Heater_1 => Channel_2, Heater_2 => Channel_1);
    Heater_Timer_Polarities : constant array (Heater_Name) of Timer_Output_Compare_Polarity :=
-     (Heater_1 => Low, Heater_2 => Low);
+     (Heater_1 => High, Heater_2 => Low);
    Heater_GPIO_Points      : constant array (Heater_Name) of GPIO_Point := (Heater_1 => PB7, Heater_2 => PA15);
    Heater_GPIO_AFs         : constant array (Heater_Name) of GPIO_Alternate_Function       :=
      (Heater_1 => GPIO_AF_TIM4_2, Heater_2 => GPIO_AF_TIM8_2);
@@ -108,7 +108,7 @@ package Hardware_Configuration is
    Fan_Timer_Channels   : constant array (Fan_Name) of Timer_Channel                 :=
      (Fan_1 => Channel_1, Fan_2 => Channel_1, Fan_3 => Channel_3, Fan_4 => Channel_1);
    Fan_Timer_Polarities : constant array (Fan_Name) of Timer_Output_Compare_Polarity :=
-     (Fan_1 => High, Fan_2 => Low, Fan_3 => Low, Fan_4 => Low);
+     (Fan_1 => High, Fan_2 => High, Fan_3 => High, Fan_4 => Low);
    Fan_GPIO_Points      : constant array (Fan_Name) of GPIO_Point                    :=
      (Fan_1 => PA1, Fan_2 => PB2, Fan_3 => PB10, Fan_4 => PB9);
    Fan_GPIO_AFs         : constant array (Fan_Name) of GPIO_Alternate_Function       :=
