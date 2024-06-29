@@ -4,10 +4,9 @@
 with Messages;               use Messages;
 with Hardware_Configuration; use Hardware_Configuration;
 with Ada.Real_Time;          use Ada.Real_Time;
+with Physical_Types;         use Physical_Types;
 
 package Heaters is
-
-   subtype Celcius is Float;
 
    procedure Init;
 
@@ -17,10 +16,10 @@ package Heaters is
    procedure Setup (Heater : Heater_Name; Parameters : Heater_Parameters);
    --  Must not be called from ISRs.
 
-   procedure Set_Setpoint (Heater : Heater_Name; Setpoint : Celcius);
+   procedure Set_Setpoint (Heater : Heater_Name; Setpoint : Temperature);
    --  Must not be called from ISRs.
 
-   procedure Update (Heater : Heater_Name; Current_Temperature : Celcius);
+   procedure Update (Heater : Heater_Name; Current_Temperature : Temperature);
 
    function Get_PWM (Heater : Heater_Name) return Fixed_Point_PWM_Scale;
 
@@ -31,41 +30,42 @@ package Heaters is
 
 private
 
-   subtype PID_Scale is Float range 0.0 .. Float'Last;
+   subtype PID_Scale is Inverse_Temperature range 0.0 .. Dimensionless'Last;
 
-   procedure Set_PWM (Heater : Heater_Name; Scale : Float) with
+   procedure Set_PWM (Heater : Heater_Name; Scale : PWM_Scale) with
      Pre => Scale >= 0.0 and Scale <= 1.0;
-   function Get_PWM (Heater : Heater_Name) return Float with
+   function Get_PWM (Heater : Heater_Name) return Dimensionless with
      Post => Get_PWM'Result >= 0.0 and Get_PWM'Result <= 1.0;
 
    type Context (Kind : Heater_Kind := Disabled_Kind) is record
-      Setpoint             : Celcius with
+      Setpoint                   : Temperature with
         Atomic;
-      Max_Cumulative_Error : Celcius;
-      Check_Gain_Time      : Time_Span;
-      Check_Minimum_Gain   : Celcius;
-      Hysteresis           : Celcius;
-      Approaching_Setpoint : Boolean;
-      Starting_Approach    : Boolean;
-      Cumulative_Error     : Celcius;
-      Last_Setpoint        : Celcius;
-      Check_Goal_Temp      : Celcius;
-      Check_Goal_Time      : Time;
+      Check_Max_Cumulative_Error : Temperature;
+      Check_Gain_Time            : Time_Span;
+      Check_Minimum_Gain         : Temperature;
+      Check_Hysteresis           : Temperature;
+      Check_Approaching_Setpoint : Boolean;
+      Check_Starting_Approach    : Boolean;
+      Check_Cumulative_Error     : Temperature;
+      Check_Last_Setpoint        : Temperature;
+      Check_Goal_Temp            : Temperature;
+      Check_Goal_Time            : Ada.Real_Time.Time;
       case Kind is
          when Disabled_Kind =>
             null;
          when Bang_Bang_Kind =>
             null;
          when PID_Kind =>
-            Proportional_Scale          : PID_Scale;
-            Integral_Scale              : PID_Scale;
-            Derivative_Scale            : PID_Scale;
-            Last_Temperature            : Celcius;
+            Proportional_Scale : PID_Scale;
+            Integral_Scale     : PID_Scale;
+            Derivative_Scale   : PID_Scale;
+            Output_Sum         : Dimensionless;
+            Last_Temperature   : Temperature;
       end case;
    end record with
      Volatile;
 
-   Contexts : array (Heater_Name) of Context := (others => (Kind => Disabled_Kind, Setpoint => 0.0, others => <>)) with
+   Contexts : array (Heater_Name) of Context := (others => (Kind => Disabled_Kind, others => <>)) with
      Volatile_Components;
 
    Global_Update_Blocker : Boolean := False with

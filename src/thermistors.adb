@@ -64,11 +64,17 @@ package body Thermistors is
       for Thermistor in Thermistor_Name loop
          for I in Thermistor_Curve_Index loop
             Curves (Thermistor) (I) :=
-              (Temp  => Celcius (Thermistor_Curves (Thermistor) (I).Temp),
+              (Temp  => Dimensionless (Thermistor_Curves (Thermistor) (I).Temp) * celcius,
                Value => Thermistor_Curves (Thermistor) (I).Value);
          end loop;
       end loop;
       Heater_Thermistors := Heater_Map;
+
+      for C of Curves loop
+         for P of C loop
+            P := (Temp => 1_000_000.0 * celcius, Value => 0);
+         end loop;
+      end loop;
    end Setup;
 
    procedure Start_ISR_Loop is
@@ -76,7 +82,7 @@ package body Thermistors is
       Start_Conversion;
    end Start_ISR_Loop;
 
-   function Last_Reported_Temperature (Thermistor : Thermistor_Name) return Celcius is
+   function Last_Reported_Temperature (Thermistor : Thermistor_Name) return Temperature is
    begin
       return Cached_Temperatures (Thermistor);
    end Last_Reported_Temperature;
@@ -93,7 +99,7 @@ package body Thermistors is
       Start_Conversion (Thermistor_ADC);
    end Start_Conversion;
 
-   function Interpolate (ADC_Val : ADC_Value; Thermistor : Thermistor_Name) return Celcius is
+   function Interpolate (ADC_Val : ADC_Value; Thermistor : Thermistor_Name) return Temperature is
       Curve : Float_Thermistor_Curve renames Curves (Thermistor);
       Left  : Thermistor_Curve_Index := Thermistor_Curve'First;
       Right : Thermistor_Curve_Index := Thermistor_Curve'Last - 1;
@@ -113,7 +119,7 @@ package body Thermistors is
       if Left > Right then
          --  Always return a high value to force the heater off as the ADC result should never go outside of the
          --  defined range under normal operation.
-         return 1_000_000.0;
+         return 1_000_000.0 * celcius;
       end if;
 
       declare
@@ -122,20 +128,20 @@ package body Thermistors is
       begin
          return
            Lower_Point.Temp +
-           (Upper_Point.Temp - Lower_Point.Temp) / Celcius (Upper_Point.Value - Lower_Point.Value) *
-             Celcius (ADC_Val - Lower_Point.Value);
+           (Upper_Point.Temp - Lower_Point.Temp) / Dimensionless (Upper_Point.Value - Lower_Point.Value) *
+             Dimensionless (ADC_Val - Lower_Point.Value);
       end;
    end Interpolate;
 
    protected body ADC_Handler is
       procedure End_Of_Sequence_Handler is
-         Temps : array (Thermistor_Name) of Celcius;
+         Temps : array (Thermistor_Name) of Temperature;
       begin
          Clear_All_Status (Thermistor_DMA_Controller, Thermistor_DMA_Stream);
 
          for Thermistor in Thermistor_Name loop
             declare
-               Temp : Celcius := Interpolate (ADC_Results (Thermistor), Thermistor);
+               Temp : Temperature := Interpolate (ADC_Results (Thermistor), Thermistor);
             begin
                Temps (Thermistor) := Temp;
             end;

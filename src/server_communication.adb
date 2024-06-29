@@ -6,6 +6,7 @@ with Hardware_Configuration; use Hardware_Configuration;
 with STM32.USARTs;           use STM32.USARTs;
 with STM32.DMA;              use STM32.DMA;
 with STM32.Device;           use STM32.Device;
+with Physical_Types;         use Physical_Types;
 with Ada.Characters.Latin_1;
 with Step_Generator;
 with Steppers;
@@ -208,7 +209,8 @@ package body Server_Communication is
                         end if;
 
                         for Heater in Heater_Name loop
-                           Heaters.Set_Setpoint (Heater, Heaters.Celcius (RX_Message.Content.Heater_Targets (Heater)));
+                           Heaters.Set_Setpoint
+                             (Heater, Dimensionless (RX_Message.Content.Heater_Targets (Heater)) * celcius);
                         end loop;
                         for Fan in Fan_Name loop
                            Fans.Set_PWM (Fan, RX_Message.Content.Fan_Targets (Fan));
@@ -257,14 +259,14 @@ package body Server_Communication is
 
          for Thermistor in Thermistor_Name loop
             declare
-               Temp : Thermistors.Celcius := Thermistors.Last_Reported_Temperature (Thermistor);
+               Temp : Temperature := Thermistors.Last_Reported_Temperature (Thermistor);
             begin
-               if Temp < Thermistors.Celcius (Fixed_Point_Celcius'First + 10.0) then
+               if Temp < Dimensionless (Fixed_Point_Celcius'First + 10.0) * celcius then
                   TX_Message.Content.Temperatures (Thermistor) := Fixed_Point_Celcius'First;
-               elsif Temp > Thermistors.Celcius (Fixed_Point_Celcius'Last - 10.0) then
+               elsif Temp > Dimensionless (Fixed_Point_Celcius'Last - 10.0) * celcius then
                   TX_Message.Content.Temperatures (Thermistor) := Fixed_Point_Celcius'Last;
                else
-                  TX_Message.Content.Temperatures (Thermistor) := Fixed_Point_Celcius (Temp);
+                  TX_Message.Content.Temperatures (Thermistor) := Fixed_Point_Celcius (Temp / celcius);
                end if;
             end;
          end loop;

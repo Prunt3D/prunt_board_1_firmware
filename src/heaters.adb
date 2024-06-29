@@ -18,6 +18,14 @@ package body Heaters is
       end Init_Timer;
    begin
       for Heater in Heater_Name loop
+         Setup
+           (Heater,
+            (Kind                 => Disabled_Kind,
+             Max_Cumulative_Error => 0.0,
+             Check_Gain_Time      => 0.0,
+             Check_Minimum_Gain   => 0.0,
+             Hysteresis           => 0.0));
+
          Init_Timer (Heater_Timers (Heater).all, Heater_Timer_Channels (Heater), Heater_Timer_Polarities (Heater));
 
          Configure_IO
@@ -48,57 +56,57 @@ package body Heaters is
       case (Parameters.Kind) is
          when Disabled_Kind =>
             Ctx :=
-              (Kind                 => Disabled_Kind,
-               Setpoint             => 0.0,
-               Max_Cumulative_Error => Celcius (Parameters.Max_Cumulative_Error),
-               Check_Gain_Time      => To_Time_Span (Duration (Parameters.Check_Gain_Time)),
-               Check_Minimum_Gain   => Celcius (Parameters.Check_Minimum_Gain),
-               Hysteresis           => Celcius (Parameters.Hysteresis),
-               Approaching_Setpoint => False,
-               Starting_Approach    => False,
-               Cumulative_Error     => 0.0,
-               Last_Setpoint        => 0.0,
-               Check_Goal_Temp      => 0.0,
-               Check_Goal_Time      => <>);
+              (Kind                       => Disabled_Kind,
+               Setpoint                   => 0.0 * celcius,
+               Check_Max_Cumulative_Error => Dimensionless (Parameters.Max_Cumulative_Error) * celcius,
+               Check_Gain_Time            => To_Time_Span (Duration (Parameters.Check_Gain_Time)),
+               Check_Minimum_Gain         => Dimensionless (Parameters.Check_Minimum_Gain) * celcius,
+               Check_Hysteresis           => Dimensionless (Parameters.Hysteresis) * celcius,
+               Check_Approaching_Setpoint => False,
+               Check_Starting_Approach    => False,
+               Check_Cumulative_Error     => 0.0 * celcius,
+               Check_Last_Setpoint        => 0.0 * celcius,
+               Check_Goal_Temp            => 0.0 * celcius,
+               Check_Goal_Time            => <>);
          when Bang_Bang_Kind =>
             Ctx :=
-              (Kind                 => Bang_Bang_Kind,
-               Setpoint             => Contexts (Heater).Setpoint,
-               Max_Cumulative_Error => Celcius (Parameters.Max_Cumulative_Error),
-               Check_Gain_Time      => To_Time_Span (Duration (Parameters.Check_Gain_Time)),
-               Check_Minimum_Gain   => Celcius (Parameters.Check_Minimum_Gain),
-               Hysteresis           => Celcius (Parameters.Hysteresis),
-               Approaching_Setpoint => False,
-               Starting_Approach    => False,
-               Cumulative_Error     => 0.0,
-               Last_Setpoint        => 0.0,
-               Check_Goal_Temp      => 0.0,
-               Check_Goal_Time      => <>);
+              (Kind                       => Bang_Bang_Kind,
+               Setpoint                   => Ctx.Setpoint,
+               Check_Max_Cumulative_Error => Dimensionless (Parameters.Max_Cumulative_Error) * celcius,
+               Check_Gain_Time            => To_Time_Span (Duration (Parameters.Check_Gain_Time)),
+               Check_Minimum_Gain         => Dimensionless (Parameters.Check_Minimum_Gain) * celcius,
+               Check_Hysteresis           => Dimensionless (Parameters.Hysteresis) * celcius,
+               Check_Approaching_Setpoint => False,
+               Check_Starting_Approach    => False,
+               Check_Cumulative_Error     => 0.0 * celcius,
+               Check_Last_Setpoint        => 0.0 * celcius,
+               Check_Goal_Temp            => 0.0 * celcius,
+               Check_Goal_Time            => <>);
          when PID_Kind =>
             Ctx :=
-              (Kind                        => PID_Kind,
-               Setpoint                    => Ctx.Setpoint,
-               Max_Cumulative_Error        => Celcius (Parameters.Max_Cumulative_Error),
-               Check_Gain_Time             => To_Time_Span (Duration (Parameters.Check_Gain_Time)),
-               Check_Minimum_Gain          => Celcius (Parameters.Check_Minimum_Gain),
-               Hysteresis                  => Celcius (Parameters.Hysteresis),
-               Approaching_Setpoint        => False,
-               Starting_Approach           => False,
-               Cumulative_Error            => 0.0,
-               Last_Setpoint               => 0.0,
-               Check_Goal_Temp             => 0.0,
-               Check_Goal_Time             => <>,
-               Proportional_Scale          => Float (Parameters.Proportional_Scale),
-               Integral_Scale              => Float (Parameters.Integral_Scale),
-               Derivative_Scale            => Float (Parameters.Derivative_Scale),
-               Output_Sum                  => (if Ctx.Kind = PID_Kind then Ctx.Output_Sum else Get_PWM (Heater)),
-               Last_Temperature            => (if Ctx.Kind = PID_Kind then Ctx.Last_Temperature else -1_000_000.0));
+              (Kind                       => PID_Kind,
+               Setpoint                   => Ctx.Setpoint,
+               Check_Max_Cumulative_Error => Dimensionless (Parameters.Max_Cumulative_Error) * celcius,
+               Check_Gain_Time            => To_Time_Span (Duration (Parameters.Check_Gain_Time)),
+               Check_Minimum_Gain         => Dimensionless (Parameters.Check_Minimum_Gain) * celcius,
+               Check_Hysteresis           => Dimensionless (Parameters.Hysteresis) * celcius,
+               Check_Approaching_Setpoint => False,
+               Check_Starting_Approach    => False,
+               Check_Cumulative_Error     => 0.0 * celcius,
+               Check_Last_Setpoint        => 0.0 * celcius,
+               Check_Goal_Temp            => 0.0 * celcius,
+               Check_Goal_Time            => <>,
+               Proportional_Scale         => PID_Scale (Parameters.Proportional_Scale),
+               Integral_Scale             => PID_Scale (Parameters.Integral_Scale),
+               Derivative_Scale           => PID_Scale (Parameters.Derivative_Scale),
+               Output_Sum                 => (if Ctx.Kind = PID_Kind then Ctx.Output_Sum else Get_PWM (Heater)),
+               Last_Temperature => (if Ctx.Kind = PID_Kind then Ctx.Last_Temperature else -1_000_000.0 * celcius));
       end case;
 
       Global_Update_Blocker := False;
    end Setup;
 
-   procedure Set_Setpoint (Heater : Heater_Name; Setpoint : Celcius) is
+   procedure Set_Setpoint (Heater : Heater_Name; Setpoint : Temperature) is
    begin
       pragma Assert (not Global_Update_Blocker);
       --  We do not need to hold the update blocker here as the Setpoint component is atomic, however the setup
@@ -107,7 +115,7 @@ package body Heaters is
       Contexts (Heater).Setpoint := Setpoint;
    end Set_Setpoint;
 
-   procedure Update (Heater : Heater_Name; Current_Temperature : Celcius) is
+   procedure Update (Heater : Heater_Name; Current_Temperature : Temperature) is
       Ctx : Context renames Contexts (Heater);
    begin
       if Global_Update_Blocker then
@@ -120,9 +128,9 @@ package body Heaters is
          when Disabled_Kind =>
             Set_PWM (Heater, 0.0);
          when Bang_Bang_Kind =>
-            if Current_Temperature > Ctx.Setpoint + Ctx.Hysteresis then
+            if Current_Temperature > Ctx.Setpoint + Ctx.Check_Hysteresis then
                Set_PWM (Heater, 0.0);
-            elsif Current_Temperature < Ctx.Setpoint + Ctx.Hysteresis then
+            elsif Current_Temperature < Ctx.Setpoint + Ctx.Check_Hysteresis then
                Set_PWM (Heater, 1.0);
             end if;
          when PID_Kind =>
@@ -131,9 +139,9 @@ package body Heaters is
                Ctx.Last_Temperature := Current_Temperature;
             end if;
             declare
-               Error   : constant Celcius := Ctx.Setpoint - Current_Temperature;
-               Delta_T : constant Celcius := Current_Temperature - Ctx.Last_Temperature;
-               Output  : Float;
+               Error   : constant Temperature := Ctx.Setpoint - Current_Temperature;
+               Delta_T : constant Temperature := Current_Temperature - Ctx.Last_Temperature;
+               Output  : Dimensionless;
             begin
                Ctx.Output_Sum := @ + (Ctx.Integral_Scale * Error);
 
@@ -170,37 +178,38 @@ package body Heaters is
       end if;
 
       --  Algorithm from Klipper.
-      if Current_Temperature >= Ctx.Setpoint - Ctx.Hysteresis or Ctx.Setpoint <= 0.0 then
-         Ctx.Approaching_Setpoint := False;
-         Ctx.Starting_Approach    := False;
-         if Current_Temperature <= Ctx.Setpoint + Ctx.Hysteresis then
-            Ctx.Cumulative_Error := 0.0;
+      if Current_Temperature >= Ctx.Setpoint - Ctx.Check_Hysteresis or Ctx.Setpoint <= 0.0 then
+         Ctx.Check_Approaching_Setpoint := False;
+         Ctx.Check_Starting_Approach    := False;
+         if Current_Temperature <= Ctx.Setpoint + Ctx.Check_Hysteresis then
+            Ctx.Check_Cumulative_Error := 0.0 * celcius;
          end if;
-         Ctx.Last_Setpoint := Ctx.Setpoint;
+         Ctx.Check_Last_Setpoint := Ctx.Setpoint;
       else
-         Ctx.Cumulative_Error := @ + (Ctx.Setpoint - Ctx.Hysteresis) - Current_Temperature;
-         if not Ctx.Approaching_Setpoint then
-            if Ctx.Setpoint /= Ctx.Last_Setpoint then
-               Ctx.Approaching_Setpoint := True;
-               Ctx.Starting_Approach    := True;
-               Ctx.Check_Goal_Temp      := Current_Temperature + Ctx.Check_Minimum_Gain;
-               Ctx.Check_Goal_Time      := Clock + Ctx.Check_Gain_Time;
-            elsif Ctx.Cumulative_Error > Ctx.Max_Cumulative_Error then
+         Ctx.Check_Cumulative_Error :=
+           Ctx.Check_Cumulative_Error + (Ctx.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature;
+         if not Ctx.Check_Approaching_Setpoint then
+            if Ctx.Setpoint /= Ctx.Check_Last_Setpoint then
+               Ctx.Check_Approaching_Setpoint := True;
+               Ctx.Check_Starting_Approach    := True;
+               Ctx.Check_Goal_Temp            := Current_Temperature + Ctx.Check_Minimum_Gain;
+               Ctx.Check_Goal_Time            := Clock + Ctx.Check_Gain_Time;
+            elsif Ctx.Check_Cumulative_Error > Ctx.Check_Max_Cumulative_Error then
                Make_Safe;
                Server_Communication.Transmit_String_Line ("Heater " & Heater'Image & " could not maintain setpoint.");
                Server_Communication.Transmit_Fatal_Exception_Mark;
             end if;
          elsif Current_Temperature >= Ctx.Check_Goal_Temp then
-            Ctx.Starting_Approach := False;
-            Ctx.Cumulative_Error  := 0.0;
-            Ctx.Check_Goal_Temp   := Current_Temperature + Ctx.Check_Minimum_Gain;
-            Ctx.Check_Goal_Time   := Clock + Ctx.Check_Gain_Time;
+            Ctx.Check_Starting_Approach := False;
+            Ctx.Check_Cumulative_Error  := 0.0 * celcius;
+            Ctx.Check_Goal_Temp         := Current_Temperature + Ctx.Check_Minimum_Gain;
+            Ctx.Check_Goal_Time         := Clock + Ctx.Check_Gain_Time;
          elsif Clock >= Ctx.Check_Goal_Time then
-            Ctx.Approaching_Setpoint := False;
-         elsif Ctx.Starting_Approach then
-            Ctx.Check_Goal_Temp := Celcius'Min (Ctx.Check_Goal_Temp, Current_Temperature + Ctx.Check_Minimum_Gain);
+            Ctx.Check_Approaching_Setpoint := False;
+         elsif Ctx.Check_Starting_Approach then
+            Ctx.Check_Goal_Temp := Temperature'Min (Ctx.Check_Goal_Temp, Current_Temperature + Ctx.Check_Minimum_Gain);
          end if;
-         Ctx.Last_Setpoint := Ctx.Setpoint;
+         Ctx.Check_Last_Setpoint := Ctx.Setpoint;
       end if;
    end Update;
 
@@ -212,14 +221,14 @@ package body Heaters is
             null;
          when Bang_Bang_Kind =>
             loop
-               exit when Ctx.Last_Temperature - Ctx.Setpoint < Ctx.Hysteresis;
+               exit when abs (Ctx.Last_Temperature - Ctx.Setpoint) < Ctx.Check_Hysteresis;
             end loop;
          when PID_Kind =>
             declare
-               Last_Bad_Time : Time := Clock;
+               Last_Bad_Time : Ada.Real_Time.Time := Clock;
             begin
                loop
-                  if abs (Ctx.Last_Temperature - Ctx.Setpoint) > 5.0 then
+                  if abs (Ctx.Last_Temperature - Ctx.Setpoint) > Ctx.Check_Hysteresis then
                      Last_Bad_Time := Clock;
                   end if;
                   exit when Clock > Last_Bad_Time + Seconds (3);
@@ -228,20 +237,21 @@ package body Heaters is
       end case;
    end Wait_Until_Stable;
 
-   procedure Set_PWM (Heater : Heater_Name; Scale : Float) is
+   procedure Set_PWM (Heater : Heater_Name; Scale : PWM_Scale) is
    begin
       Set_Compare_Value (Heater_Timers (Heater).all, Heater_Timer_Channels (Heater), UInt16 (Scale * 50_001.0));
    end Set_PWM;
 
-   function Get_PWM (Heater : Heater_Name) return Float is
+   function Get_PWM (Heater : Heater_Name) return Dimensionless is
    begin
       return
-        Float (UInt16'(Current_Capture_Value (Heater_Timers (Heater).all, Heater_Timer_Channels (Heater)))) / 50_001.0;
+        Dimensionless (UInt16'(Current_Capture_Value (Heater_Timers (Heater).all, Heater_Timer_Channels (Heater)))) /
+        50_001.0;
    end Get_PWM;
 
    function Get_PWM (Heater : Heater_Name) return Fixed_Point_PWM_Scale is
    begin
-      return Fixed_Point_PWM_Scale (Float'(Get_PWM (Heater)));
+      return Fixed_Point_PWM_Scale (Dimensionless'(Get_PWM (Heater)));
    end Get_PWM;
 
    procedure Start_Watchdog is
