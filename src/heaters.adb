@@ -91,7 +91,6 @@ package body Heaters is
                Proportional_Scale          => Float (Parameters.Proportional_Scale),
                Integral_Scale              => Float (Parameters.Integral_Scale),
                Derivative_Scale            => Float (Parameters.Derivative_Scale),
-               Proportional_On_Measurement => Boolean (Parameters.Proportional_On_Measurement),
                Output_Sum                  => (if Ctx.Kind = PID_Kind then Ctx.Output_Sum else Get_PWM (Heater)),
                Last_Temperature            => (if Ctx.Kind = PID_Kind then Ctx.Last_Temperature else -1_000_000.0));
       end case;
@@ -138,12 +137,7 @@ package body Heaters is
             begin
                Ctx.Output_Sum := @ + (Ctx.Integral_Scale * Error);
 
-               if Ctx.Proportional_On_Measurement then
-                  Ctx.Output_Sum := @ - (Ctx.Proportional_Scale * Delta_T);
-                  Output         := 0.0;
-               else
-                  Output := Ctx.Proportional_Scale * Error;
-               end if;
+               Output := Ctx.Proportional_Scale * Error;
 
                if Ctx.Output_Sum < 0.0 then
                   Ctx.Output_Sum := 0.0;

@@ -118,24 +118,22 @@ package Messages is
          when Bang_Bang_Kind =>
             null;
          when PID_Kind =>
-            Proportional_Scale          : Fixed_Point_PID_Parameter;
-            Integral_Scale              : Fixed_Point_PID_Parameter;
-            Derivative_Scale            : Fixed_Point_PID_Parameter;
-            Proportional_On_Measurement : Byte_Boolean;
+            Proportional_Scale : Fixed_Point_PID_Parameter;
+            Integral_Scale     : Fixed_Point_PID_Parameter;
+            Derivative_Scale   : Fixed_Point_PID_Parameter;
       end case;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 224;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 192;
 
    for Heater_Parameters use record
-      Kind                        at  0 range 0 ..  7;
-      Max_Cumulative_Error        at  2 range 0 .. 15;
-      Check_Gain_Time             at  4 range 0 .. 15;
-      Check_Minimum_Gain          at  6 range 0 .. 15;
-      Hysteresis                  at  8 range 0 .. 15;
-      Proportional_Scale          at 12 range 0 .. 31;
-      Integral_Scale              at 16 range 0 .. 31;
-      Derivative_Scale            at 20 range 0 .. 31;
-      Proportional_On_Measurement at 24 range 0 ..  7;
+      Kind                 at  0 range 0 ..  7;
+      Max_Cumulative_Error at  2 range 0 .. 15;
+      Check_Gain_Time      at  4 range 0 .. 15;
+      Check_Minimum_Gain   at  6 range 0 .. 15;
+      Hysteresis           at  8 range 0 .. 15;
+      Proportional_Scale   at 12 range 0 .. 31;
+      Integral_Scale       at 16 range 0 .. 31;
+      Derivative_Scale     at 20 range 0 .. 31;
    end record;
 
    type Thermistor_Point is record
@@ -225,7 +223,7 @@ package Messages is
       Heater_Thermistors    at 16 range 0 ..      15;
       Thermistor_Curves     at 18 range 0 ..  98_303;
       Heater                at 16 range 0 ..       7;
-      Heater_Params         at 20 range 0 ..     223;
+      Heater_Params         at 20 range 0 ..     191;
       Loop_Input_Switch     at 16 range 0 ..       7;
       Loop_Until_State      at 17 range 0 ..       7;
       Fan_Targets           at 16 range 0 ..      63;

@@ -60,8 +60,6 @@ private
             Proportional_Scale          : PID_Scale;
             Integral_Scale              : PID_Scale;
             Derivative_Scale            : PID_Scale;
-            Proportional_On_Measurement : Boolean;
-            Output_Sum                  : Float;
             Last_Temperature            : Celcius;
       end case;
    end record with
