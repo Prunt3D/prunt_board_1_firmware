@@ -32,8 +32,8 @@ package body Step_Generator is
          Configure_Channel_Output_Event (Timer, Output_2, Timer_Compare_3, Set_Event, True);
          Configure_Channel_Output_Event (Timer, Output_2, Master_Period, Reset_Event, True);
          Configure_Channel_Output_Event (Timer, Output_2, Timer_Period, Reset_Event, True);
-         Set_Compare_Value (Timer, Compare_3, 150);
-         Set_Channel_Output_Polarity (Timer, Output_2, High);
+         Set_Compare_Value (Timer, Compare_3, 120);
+         Set_Channel_Output_Polarity (Timer, Output_2, Low);
          Set_Channel_Output (Timer, Output_2, True);
 
          Set_Register_Preload (Timer, True);
@@ -72,7 +72,7 @@ package body Step_Generator is
 
       Configure_Prescaler (STM32.Device.HRTimer_M, Div_8); --  4x HRTIM clock
       Set_Counter_Operating_Mode (STM32.Device.HRTimer_M, Continuous);
-      Set_Period (STM32.Device.HRTimer_M, 58_706); --  Divide 600MHz by this value, assuming 150MHz clock.
+      Set_Period (STM32.Device.HRTimer_M, 64_623); --  Divide 600MHz by this value, assuming 150MHz clock.
       Set_Repetition_Counter (STM32.Device.HRTimer_M, 0);
       Configure_Register_Preload_Update (STM32.Device.HRTimer_M, Repetition => True, Burst_DMA => Independent);
       Set_Register_Preload (STM32.Device.HRTimer_M, True);
@@ -179,17 +179,17 @@ package body Step_Generator is
          end if;
 
          Set_Period (STM32.Device.HRTimer_B, Step_Count_To_Period (Steps (Stepper_1)));
-         Set_Compare_Value (STM32.Device.HRTimer_B, Compare_2, (if Dirs (Stepper_1) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_B, Compare_2, (if Dirs (Stepper_1) = Forward then 0 else 65_535));
          Set_Period (STM32.Device.HRTimer_A, Step_Count_To_Period (Steps (Stepper_2)));
-         Set_Compare_Value (STM32.Device.HRTimer_A, Compare_2, (if Dirs (Stepper_2) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_A, Compare_2, (if Dirs (Stepper_2) = Forward then 0 else 65_535));
          Set_Period (STM32.Device.HRTimer_E, Step_Count_To_Period (Steps (Stepper_3)));
-         Set_Compare_Value (STM32.Device.HRTimer_E, Compare_2, (if Dirs (Stepper_3) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_E, Compare_2, (if Dirs (Stepper_3) = Forward then 0 else 65_535));
          Set_Period (STM32.Device.HRTimer_F, Step_Count_To_Period (Steps (Stepper_4)));
-         Set_Compare_Value (STM32.Device.HRTimer_F, Compare_2, (if Dirs (Stepper_4) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_F, Compare_2, (if Dirs (Stepper_4) = Forward then 0 else 65_535));
          Set_Period (STM32.Device.HRTimer_D, Step_Count_To_Period (Steps (Stepper_5)));
-         Set_Compare_Value (STM32.Device.HRTimer_D, Compare_2, (if Dirs (Stepper_5) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_D, Compare_2, (if Dirs (Stepper_5) = Forward then 0 else 65_535));
          Set_Period (STM32.Device.HRTimer_C, Step_Count_To_Period (Steps (Stepper_6)));
-         Set_Compare_Value (STM32.Device.HRTimer_C, Compare_2, (if Dirs (Stepper_6) = Forward then 0 else 60_000));
+         Set_Compare_Value (STM32.Device.HRTimer_C, Compare_2, (if Dirs (Stepper_6) = Forward then 0 else 65_535));
 
          if Step_Delta_Buffer_Loop_Enabled
            and then Step_Delta_Buffer_Reader_Index + 1 = Step_Delta_Buffer_Loop_End_Index
