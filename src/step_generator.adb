@@ -11,7 +11,7 @@ package body Step_Generator is
       begin
          Disable (Timer);
 
-         Configure_Prescaler (Timer, Div_8); --  4x HRTIM clock
+         Configure_Prescaler (Timer, Div_4); --  8x HRTIM clock
          Set_Counter_Mode (Timer, Up);
          Set_Counter_Operating_Mode (Timer, Continuous);
          Configure_Register_Preload_Update (Timer, Master_Update, True);
@@ -32,7 +32,7 @@ package body Step_Generator is
          Configure_Channel_Output_Event (Timer, Output_2, Timer_Compare_3, Set_Event, True);
          Configure_Channel_Output_Event (Timer, Output_2, Master_Period, Reset_Event, True);
          Configure_Channel_Output_Event (Timer, Output_2, Timer_Period, Reset_Event, True);
-         Set_Compare_Value (Timer, Compare_3, 120);
+         Set_Compare_Value (Timer, Compare_3, 240);
          Set_Channel_Output_Polarity (Timer, Output_2, Low);
          Set_Channel_Output (Timer, Output_2, True);
 
@@ -70,9 +70,9 @@ package body Step_Generator is
       HRTimer_Init (STM32.Device.HRTimer_E);
       HRTimer_Init (STM32.Device.HRTimer_F);
 
-      Configure_Prescaler (STM32.Device.HRTimer_M, Div_8); --  4x HRTIM clock
+      Configure_Prescaler (STM32.Device.HRTimer_M, Div_4); --  8x HRTIM clock
       Set_Counter_Operating_Mode (STM32.Device.HRTimer_M, Continuous);
-      Set_Period (STM32.Device.HRTimer_M, 64_623); --  Divide 600MHz by this value, assuming 150MHz clock.
+      Set_Period (STM32.Device.HRTimer_M, 58_490); --  Divide 1200MHz by this value, assuming 150MHz clock.
       Set_Repetition_Counter (STM32.Device.HRTimer_M, 0);
       Configure_Register_Preload_Update (STM32.Device.HRTimer_M, Repetition => True, Burst_DMA => Independent);
       Set_Register_Preload (STM32.Device.HRTimer_M, True);

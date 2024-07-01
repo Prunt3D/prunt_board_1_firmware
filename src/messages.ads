@@ -58,8 +58,8 @@ package Messages is
    type Message_Index is mod 2**64 with
      Size => 64;
 
-   type Step_Count is range 0 .. 200 with
-     Size => 8;
+   type Step_Count is range 0 .. 100 with
+     Size => 7;
 
    type Step_Delta_List_Index is mod 2**11 with
      Size => 16;
@@ -77,11 +77,11 @@ package Messages is
       Dirs  : Step_Delta_Dirs;
       Steps : Step_Delta_Steps;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 56;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 50;
 
    for Step_Delta use record
       Dirs  at 0 range 0 ..  7;
-      Steps at 1 range 0 .. 47;
+      Steps at 1 range 0 .. 41;
    end record;
 
    type Step_Delta_List is array (Step_Delta_List_Index) of Step_Delta with
@@ -215,7 +215,7 @@ package Messages is
             null;
       end case;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 114_944;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 102_656;
 
    for Message_From_Server_Content use record
       Kind                  at  0 range 0 ..       7;
@@ -230,7 +230,7 @@ package Messages is
       Heater_Targets        at 24 range 0 ..      31;
       Last_Index            at 28 range 0 ..      15;
       Safe_Stop_After       at 30 range 0 ..       7;
-      Steps                 at 31 range 0 .. 114_687;
+      Steps                 at 31 range 0 .. 102_399;
       Conditon_Input_Switch at 16 range 0 ..       7;
       Skip_If_Hit_State     at 17 range 0 ..       7;
       TMC_Write_Data        at 16 range 0 ..      63;
@@ -243,12 +243,12 @@ package Messages is
       Checksum : CRC32;
       Content  : Message_From_Server_Content;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 3_594 * 32;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 3_210 * 32;
      --  Size should always be a multiple of 32 to allow for 32-bit CRC inputs on STM32.
 
    for Message_From_Server use record
       Checksum at 0 range 0 ..      31;
-      Content  at 8 range 0 .. 114_943;
+      Content  at 8 range 0 .. 102_655;
    end record;
 
    type Message_From_Client_Kind is (Hello_Kind, Status_Kind, TMC_Read_Reply_Kind) with
