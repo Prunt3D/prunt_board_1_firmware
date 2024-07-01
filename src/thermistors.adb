@@ -116,7 +116,7 @@ package body Thermistors is
          end if;
       end loop;
 
-      if Left > Right then
+      if Left > Right or ADC_Val = 0 then
          --  Always return a high value to force the heater off as the ADC result should never go outside of the
          --  defined range under normal operation.
          return 1_000_000.0 * celcius;
@@ -138,6 +138,7 @@ package body Thermistors is
          Temps : array (Thermistor_Name) of Temperature;
       begin
          Clear_All_Status (Thermistor_DMA_Controller, Thermistor_DMA_Stream);
+         Start_Conversion;
 
          for Thermistor in Thermistor_Name loop
             declare
@@ -147,12 +148,9 @@ package body Thermistors is
             end;
          end loop;
 
-         Start_Conversion;
-
          for Thermistor in Thermistor_Name loop
             Cached_Temperatures (Thermistor) := Temps (Thermistor);
          end loop;
-
 
          for Heater in Heater_Name loop
             Heaters.Update (Heater, Temps (Heater_Thermistors (Heater)));
