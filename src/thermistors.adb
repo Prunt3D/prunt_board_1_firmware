@@ -116,7 +116,7 @@ package body Thermistors is
          end if;
       end loop;
 
-      if Left > Right or ADC_Val = 0 then
+      if Left > Right then
          --  Always return a high value to force the heater off as the ADC result should never go outside of the
          --  defined range under normal operation.
          return 1_000_000.0 * celcius;
@@ -126,10 +126,14 @@ package body Thermistors is
          Lower_Point : constant Float_Thermistor_Point := Curve (Mid);
          Upper_Point : constant Float_Thermistor_Point := Curve (Mid + 1);
       begin
-         return
-           Lower_Point.Temp +
-           (Upper_Point.Temp - Lower_Point.Temp) / Dimensionless (Upper_Point.Value - Lower_Point.Value) *
-             Dimensionless (ADC_Val - Lower_Point.Value);
+         if Lower_Point.Temp = Upper_Point.Temp then
+            return Lower_Point.Temp;
+         else
+            return
+              Lower_Point.Temp +
+              (Upper_Point.Temp - Lower_Point.Temp) / Dimensionless (Upper_Point.Value - Lower_Point.Value) *
+                Dimensionless (ADC_Val - Lower_Point.Value);
+         end if;
       end;
    end Interpolate;
 
