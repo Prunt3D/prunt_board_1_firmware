@@ -12,6 +12,12 @@ package body Thermistors is
       Enable_Clock (Thermistor_ADC);
       Enable_Clock (Thermistor_DMA_Controller);
 
+      for C of Curves loop
+         for P of C loop
+            P := (Temp => 1_000_000.0 * celcius, Value => 0);
+         end loop;
+      end loop;
+
       Disable (Thermistor_ADC);
 
       Configure_Common_Properties
@@ -69,12 +75,6 @@ package body Thermistors is
          end loop;
       end loop;
       Heater_Thermistors := Heater_Map;
-
-      for C of Curves loop
-         for P of C loop
-            P := (Temp => 1_000_000.0 * celcius, Value => 0);
-         end loop;
-      end loop;
    end Setup;
 
    procedure Start_ISR_Loop is
