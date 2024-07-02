@@ -65,13 +65,13 @@ package Messages is
      Size => 16;
 
    type Step_Delta_Steps is array (Stepper_Name) of Step_Count with
-     Pack, Scalar_Storage_Order => System.Low_Order_First;
+     Scalar_Storage_Order => System.Low_Order_First, Component_Size => 7, Size => 42;
 
    type Direction is (Forward, Backward) with
      Size => 1;
 
    type Step_Delta_Dirs is array (Stepper_Name) of Direction with
-     Pack, Scalar_Storage_Order => System.Low_Order_First;
+     Scalar_Storage_Order => System.Low_Order_First, Component_Size => 1, Size => 8;
 
    type Step_Delta is record
       Dirs  : Step_Delta_Dirs;
