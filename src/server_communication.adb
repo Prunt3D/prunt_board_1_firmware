@@ -15,6 +15,7 @@ with Input_Switches;
 with Thermistors;
 with Heaters;
 with Fans;
+with System.Machine_Code;
 
 package body Server_Communication is
 
@@ -141,6 +142,12 @@ package body Server_Communication is
          delay until Clock + Milliseconds (1);
          --  TODO: Is a delay required before disabling the DMA or will it always transfer the last byte?
          Disable (Comms_UART_DMA_RX_Controller, Comms_UART_DMA_RX_Stream);
+
+         System.Machine_Code.Asm
+           ("",
+            Outputs  => Message_From_Server'Asm_Output ("=g", RX_Message),
+            Clobber  => "memory",
+            Volatile => True);
 
          declare
             CRC_Output : UInt32;

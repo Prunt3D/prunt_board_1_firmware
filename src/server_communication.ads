@@ -12,8 +12,7 @@ package Server_Communication is
 
 private
 
-   RX_Message : Message_From_Server with
-     Volatile;
+   RX_Message : Message_From_Server;
 
    TX_Message : Message_From_Client;
 
