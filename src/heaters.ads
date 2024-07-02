@@ -23,7 +23,7 @@ package Heaters is
 
    function Get_PWM (Heater : Heater_Name) return Fixed_Point_PWM_Scale;
 
-   procedure Wait_Until_Stable (Heater : Heater_Name);
+   function Check_If_Stable (Heater : Heater_Name) return Boolean;
 
    procedure Start_Watchdog;
    --  Should only be called once. Calling again will reset the timer.

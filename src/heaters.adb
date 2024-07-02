@@ -213,29 +213,19 @@ package body Heaters is
       end if;
    end Update;
 
-   procedure Wait_Until_Stable (Heater : Heater_Name) is
+   function Check_If_Stable (Heater : Heater_Name) return Boolean is
       Ctx : Context renames Contexts (Heater);
    begin
       case Ctx.Kind is
          when Disabled_Kind =>
-            null;
+            return True;
          when Bang_Bang_Kind =>
-            loop
-               exit when abs (Ctx.Last_Temperature - Ctx.Setpoint) < Ctx.Check_Hysteresis;
-            end loop;
+            return abs (Ctx.Last_Temperature - Ctx.Setpoint) < Ctx.Check_Hysteresis;
          when PID_Kind =>
-            declare
-               Last_Bad_Time : Ada.Real_Time.Time := Clock;
-            begin
-               loop
-                  if abs (Ctx.Last_Temperature - Ctx.Setpoint) > Ctx.Check_Hysteresis then
-                     Last_Bad_Time := Clock;
-                  end if;
-                  exit when Clock > Last_Bad_Time + Seconds (3);
-               end loop;
-            end;
+            return abs (Ctx.Last_Temperature - Ctx.Setpoint) < Ctx.Check_Hysteresis;
+            --  TODO: Check if this is stable rather than just in-range.
       end case;
-   end Wait_Until_Stable;
+   end Check_If_Stable;
 
    procedure Set_PWM (Heater : Heater_Name; Scale : PWM_Scale) is
    begin

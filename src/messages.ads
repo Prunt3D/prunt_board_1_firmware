@@ -169,8 +169,8 @@ package Messages is
       TMC_Write_Kind,
       TMC_Read_Kind,
       Status_Kind,
-      Wait_Until_Idle_Kind,
-      Wait_Until_Heater_Stable_Kind,
+      Check_If_Idle_Kind,
+      Check_If_Heater_Stable_Kind,
       Enable_Stepper_Kind,
       Disable_Stepper_Kind,
       Enable_High_Power_Switch_Kind,
@@ -205,10 +205,10 @@ package Messages is
             TMC_Read_Data : TMC2240_UART_Query_Byte_Array;
          when Status_Kind =>
             null;
-         when Wait_Until_Idle_Kind =>
+         when Check_If_Idle_Kind =>
             null;
-         when Wait_Until_Heater_Stable_Kind =>
-            Heater_To_Wait_For : Heater_Name;
+         when Check_If_Heater_Stable_Kind =>
+            Heater_To_Check : Heater_Name;
          when Enable_Stepper_Kind | Disable_Stepper_Kind =>
             Stepper : Stepper_Name;
          when Enable_High_Power_Switch_Kind | Disable_High_Power_Switch_Kind =>
@@ -235,7 +235,7 @@ package Messages is
       Skip_If_Hit_State     at 17 range 0 ..       7;
       TMC_Write_Data        at 16 range 0 ..      63;
       TMC_Read_Data         at 16 range 0 ..      31;
-      Heater_To_Wait_For    at 16 range 0 ..       7;
+      Heater_To_Check       at 16 range 0 ..       7;
       Stepper               at 16 range 0 ..       7;
    end record;
 
@@ -251,7 +251,7 @@ package Messages is
       Content  at 8 range 0 .. 102_655;
    end record;
 
-   type Message_From_Client_Kind is (Hello_Kind, Status_Kind, TMC_Read_Reply_Kind) with
+   type Message_From_Client_Kind is (Hello_Kind, Status_Kind, TMC_Read_Reply_Kind, Check_Reply_Kind) with
      Size => 8;
 
    type Message_From_Client_Content (Kind : Message_From_Client_Kind := Hello_Kind) is record
@@ -267,6 +267,8 @@ package Messages is
          when TMC_Read_Reply_Kind =>
             TMC_Receive_Failed : Byte_Boolean;
             TMC_Data           : TMC2240_UART_Data_Byte_Array;
+         when Check_Reply_Kind =>
+            Condition_Met : Byte_Boolean;
       end case;
    end record with
      Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 448;
@@ -280,6 +282,7 @@ package Messages is
       ID                 at 40 range 0 .. 127;
       TMC_Receive_Failed at 36 range 0 ..   7;
       TMC_Data           at 37 range 0 ..  63;
+      Condition_Met      at 36 range 0 ..   7;
    end record;
 
    type Message_From_Client is record

@@ -149,16 +149,14 @@ package body Step_Generator is
       Step_Delta_Buffer_Loop_Enabled   := True;
    end Enqueue_Stop_Loop;
 
-   procedure Wait_Until_Idle is
+   function Check_If_Idle return Boolean is
    begin
       if Is_Idle and then Step_Delta_Buffer_Reader_Index /= Step_Delta_Buffer_Writer_Index then
          Is_Idle := False;
       end if;
 
-      loop
-         exit when Is_Idle;
-      end loop;
-   end Wait_Until_Idle;
+      return Is_Idle;
+   end Check_If_Idle;
 
    procedure Force_Start is
    begin

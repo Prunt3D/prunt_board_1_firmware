@@ -12,7 +12,7 @@ package Step_Generator is
    procedure Setup_Loop (Input_Switch : Input_Switch_Name; Until_State : Input_Switch_State);
    procedure Enqueue_Start_Loop;
    procedure Enqueue_Stop_Loop;
-   procedure Wait_Until_Idle;
+   function Check_If_Idle return Boolean;
    procedure Force_Start;
 
    Empty_Buffer_Error : exception;

@@ -235,10 +235,13 @@ package body Server_Communication is
                         TX_Message.Content.TMC_Data);
                   when Status_Kind =>
                      null;
-                  when Wait_Until_Idle_Kind =>
-                     Step_Generator.Wait_Until_Idle;
-                  when Wait_Until_Heater_Stable_Kind =>
-                     Heaters.Wait_Until_Stable (RX_Message.Content.Heater_To_Wait_For);
+                  when Check_If_Idle_Kind =>
+                     Set_TX_Message_Kind (Check_Reply_Kind);
+                     TX_Message.Content.Condition_Met := Byte_Boolean (Step_Generator.Check_If_Idle);
+                  when Check_If_Heater_Stable_Kind =>
+                     Set_TX_Message_Kind (Check_Reply_Kind);
+                     TX_Message.Content.Condition_Met :=
+                       Byte_Boolean (Heaters.Check_If_Stable (RX_Message.Content.Heater_To_Check));
                   when Enable_Stepper_Kind =>
                      Steppers.Enable (RX_Message.Content.Stepper);
                   when Disable_Stepper_Kind =>
