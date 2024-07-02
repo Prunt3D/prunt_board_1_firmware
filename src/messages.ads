@@ -25,7 +25,7 @@ package Messages is
 
    type Byte_Boolean is new Boolean with
      Size => 8;
-   for Byte_Boolean use (False => 0, True => 1);
+   for Byte_Boolean use (False => 0, True => 2#11000101#);
 
    type TMC2240_UART_Byte is mod 2**8 with
      Size => 8;
