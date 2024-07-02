@@ -226,7 +226,6 @@ package body Server_Communication is
                         --  be an issue since the total buffer size is less than a second.
                      end if;
                   when Condition_Check_Kind =>
-                     Step_Generator.Wait_Until_Idle;
                      if Input_Switches.Get_State (RX_Message.Content.Conditon_Input_Switch) =
                        RX_Message.Content.Skip_If_Hit_State
                      then
