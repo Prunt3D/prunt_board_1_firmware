@@ -282,8 +282,13 @@ package body Heaters is
          end if;
          Ctx.Check_Last_Setpoint := Ctx.Setpoint;
       else
-         Ctx.Check_Cumulative_Error :=
-           Ctx.Check_Cumulative_Error + (Ctx.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature;
+         if Ctx.Kind = PID_Kind and then Ctx.In_Autotune_Mode then
+            Ctx.Check_Cumulative_Error :=
+              Ctx.Check_Cumulative_Error + ((Ctx.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature) * 0.5;
+         else
+            Ctx.Check_Cumulative_Error :=
+              Ctx.Check_Cumulative_Error + (Ctx.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature;
+         end if;
          if not Ctx.Check_Approaching_Setpoint then
             if Ctx.Setpoint /= Ctx.Check_Last_Setpoint then
                Ctx.Check_Approaching_Setpoint := True;
