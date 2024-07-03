@@ -4,6 +4,13 @@ with Physical_Types; use Physical_Types;
 
 package Thermistors is
 
+   Loop_Frequency : constant Frequency := (150_000.0 / 4.0) * hertz / (256.0 * 4.0 * 640.5);
+   --  150/4 = ADC clock frequency.
+   --  256 = Oversampling.
+   --  4 = Thermistor count.
+   --  640.5 = Sample time.
+   --  This probably is a bit off, I have not checked exactly how the ADC timings work.
+
    procedure Init;
    procedure Setup (Thermistor_Curves : Thermistor_Curves_Array; Heater_Map : Heater_Thermistor_Map);
    procedure Start_ISR_Loop;

@@ -25,8 +25,9 @@ package Heaters is
 
    function Check_If_Stable (Heater : Heater_Name) return Boolean;
 
-   procedure Start_Watchdog;
-   --  Should only be called once. Calling again will reset the timer.
+   procedure Start_Autotune (Heater : Heater_Name; Setpoint : Temperature);
+
+   function Check_If_Autotune_Done (Heater : Heater_Name) return Boolean;
 
 private
 
@@ -36,6 +37,26 @@ private
      Pre => Scale >= 0.0 and Scale <= 1.0;
    function Get_PWM (Heater : Heater_Name) return Dimensionless with
      Post => Get_PWM'Result >= 0.0 and Get_PWM'Result <= 1.0;
+
+   type PID_Autotune_Context is record
+      Bias               : PWM_Scale;
+      D                  : PWM_Scale;
+      T1                 : Ada.Real_Time.Time;
+      T2                 : Ada.Real_Time.Time;
+      T_High             : Time_Span;
+      T_Low              : Time_Span;
+      Cycles             : Natural;
+      Heating            : Boolean;
+      Max_T              : Temperature;
+      Min_T              : Temperature;
+      Max_Cycles         : Natural;
+      Pf                 : Dimensionless;
+      Df                 : Frequency;
+      Proportional_Scale : PID_Scale;
+      Integral_Scale     : PID_Scale;
+      Derivative_Scale   : PID_Scale;
+   end record with
+     Volatile;
 
    type Context (Kind : Heater_Kind := Disabled_Kind) is record
       Setpoint                   : Temperature with
@@ -61,6 +82,9 @@ private
             Derivative_Scale   : PID_Scale;
             Output_Sum         : Dimensionless;
             Last_Temperature   : Temperature;
+            In_Autotune_Mode   : Boolean with
+              Atomic;
+            Autotune           : PID_Autotune_Context;
       end case;
    end record with
      Volatile;
@@ -69,6 +93,9 @@ private
      Volatile_Components;
 
    Global_Update_Blocker : Boolean := False with
+     Atomic, Volatile;
+
+   Watchdog_Started : Boolean := False with
      Atomic, Volatile;
 
    type Updated_Heaters_Type is array (Heater_Name) of Boolean with

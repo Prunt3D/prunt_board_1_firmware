@@ -25,7 +25,7 @@ package Messages is
 
    type Byte_Boolean is new Boolean with
      Size => 8;
-   for Byte_Boolean use (False => 0, True => 2#11000101#);
+   for Byte_Boolean use (False => 0, True => 2#1100_0101#);
 
    type TMC2240_UART_Byte is mod 2**8 with
      Size => 8;
@@ -162,6 +162,7 @@ package Messages is
    type Message_From_Server_Kind is
      (Setup_Kind,
       Heater_Reconfigure_Kind,
+      Heater_Autotune_Kind,
       Loop_Setup_Kind,
       Regular_Step_Delta_List_Kind,
       Looping_Step_Delta_List_Kind,
@@ -171,6 +172,7 @@ package Messages is
       Status_Kind,
       Check_If_Idle_Kind,
       Check_If_Heater_Stable_Kind,
+      Check_If_Heater_Autotune_Done_Kind,
       Enable_Stepper_Kind,
       Disable_Stepper_Kind,
       Enable_High_Power_Switch_Kind,
@@ -186,6 +188,9 @@ package Messages is
          when Heater_Reconfigure_Kind =>
             Heater        : Heater_Name;
             Heater_Params : Heater_Parameters;
+         when Heater_Autotune_Kind =>
+            Heater_To_Tune   : Heater_Name;
+            Setpoint_To_Tune : Fixed_Point_Celcius;
          when Loop_Setup_Kind =>
             Loop_Input_Switch : Input_Switch_Name;
             Loop_Until_State  : Input_Switch_State;
@@ -207,7 +212,7 @@ package Messages is
             null;
          when Check_If_Idle_Kind =>
             null;
-         when Check_If_Heater_Stable_Kind =>
+         when Check_If_Heater_Stable_Kind | Check_If_Heater_Autotune_Done_Kind =>
             Heater_To_Check : Heater_Name;
          when Enable_Stepper_Kind | Disable_Stepper_Kind =>
             Stepper : Stepper_Name;
@@ -224,6 +229,8 @@ package Messages is
       Thermistor_Curves     at 18 range 0 ..  98_303;
       Heater                at 16 range 0 ..       7;
       Heater_Params         at 20 range 0 ..     191;
+      Heater_To_Tune        at 16 range 0 ..       7;
+      Setpoint_To_Tune      at 18 range 0 ..      15;
       Loop_Input_Switch     at 16 range 0 ..       7;
       Loop_Until_State      at 17 range 0 ..       7;
       Fan_Targets           at 16 range 0 ..      63;

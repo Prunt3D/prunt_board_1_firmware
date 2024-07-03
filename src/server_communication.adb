@@ -144,10 +144,7 @@ package body Server_Communication is
          Disable (Comms_UART_DMA_RX_Controller, Comms_UART_DMA_RX_Stream);
 
          System.Machine_Code.Asm
-           ("",
-            Outputs  => Message_From_Server'Asm_Output ("=g", RX_Message),
-            Clobber  => "memory",
-            Volatile => True);
+           ("", Outputs => Message_From_Server'Asm_Output ("=g", RX_Message), Clobber => "memory", Volatile => True);
 
          declare
             CRC_Output : UInt32;
@@ -189,6 +186,10 @@ package body Server_Communication is
                      Setup_Done := True;
                   when Heater_Reconfigure_Kind =>
                      Heaters.Setup (RX_Message.Content.Heater, RX_Message.Content.Heater_Params);
+                  when Heater_Autotune_Kind =>
+                     Heaters.Start_Autotune
+                       (RX_Message.Content.Heater_To_Tune,
+                        Dimensionless (RX_Message.Content.Setpoint_To_Tune) * celcius);
                   when Loop_Setup_Kind =>
                      Step_Generator.Setup_Loop
                        (RX_Message.Content.Loop_Input_Switch, RX_Message.Content.Loop_Until_State);
@@ -248,6 +249,10 @@ package body Server_Communication is
                      Set_TX_Message_Kind (Check_Reply_Kind);
                      TX_Message.Content.Condition_Met :=
                        Byte_Boolean (Heaters.Check_If_Stable (RX_Message.Content.Heater_To_Check));
+                  when Check_If_Heater_Autotune_Done_Kind =>
+                     Set_TX_Message_Kind (Check_Reply_Kind);
+                     TX_Message.Content.Condition_Met :=
+                       Byte_Boolean (Heaters.Check_If_Autotune_Done (RX_Message.Content.Heater_To_Check));
                   when Enable_Stepper_Kind =>
                      Steppers.Enable (RX_Message.Content.Stepper);
                   when Disable_Stepper_Kind =>
