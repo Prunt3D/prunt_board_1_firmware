@@ -199,11 +199,11 @@ package body Heaters is
                            Ku : constant Inverse_Temperature :=
                              8.0 * Ctx.Autotune.D / (Ada.Numerics.Pi * (Ctx.Autotune.Max_T - Ctx.Autotune.Min_T));
                            Tu : constant Physical_Types.Time :=
-                             Physical_Types.Time (To_Duration (Ctx.Autotune.T_Low + Ctx.Autotune.T_High));
+                             Dimensionless (To_Duration (Ctx.Autotune.T_Low + Ctx.Autotune.T_High)) * s;
                         begin
                            Ctx.Autotune.Proportional_Scale := Ku * Ctx.Autotune.Pf;
-                           Ctx.Autotune.Integral_Scale     := Ctx.Proportional_Scale * (2.0 * s / Tu);
-                           Ctx.Autotune.Derivative_Scale   := Ctx.Proportional_Scale * Tu * Ctx.Autotune.Df;
+                           Ctx.Autotune.Integral_Scale     := Ctx.Autotune.Proportional_Scale * (2.0 * s / Tu);
+                           Ctx.Autotune.Derivative_Scale   := Ctx.Autotune.Proportional_Scale * Tu * Ctx.Autotune.Df;
 
                            Server_Communication.Transmit_String_Line ("Ku=" & Ku'Image & " Tu=" & Tu'Image);
                            Server_Communication.Transmit_String_Line
@@ -234,13 +234,11 @@ package body Heaters is
                   Ctx.Last_Temperature := Current_Temperature;
                end if;
                declare
-                  Error   : constant Temperature := Ctx.Setpoint - Current_Temperature;
-                  Delta_T : constant Temperature := Current_Temperature - Ctx.Last_Temperature;
-                  Output  : Dimensionless;
+                  Error   : constant Temperature   := Ctx.Setpoint - Current_Temperature;
+                  Delta_T : constant Temperature   := Current_Temperature - Ctx.Last_Temperature;
+                  Output  :          Dimensionless := Ctx.Proportional_Scale * Error;
                begin
                   Ctx.Output_Sum := @ + (Ctx.Integral_Scale * Error);
-
-                  Output := Ctx.Proportional_Scale * Error;
 
                   if Ctx.Output_Sum < 0.0 then
                      Ctx.Output_Sum := 0.0;
