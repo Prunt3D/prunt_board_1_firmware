@@ -54,7 +54,8 @@ library project Ada_Drivers_Library is
          "-gnatw.X", --  Disable warnings for No_Exception_Propagation
          "-ffunction-sections", --  Create a linker section for each function
          "-fdata-sections",  --  Create a linker section for each data
-         "-gnat2022");  --  Ada 2022
+         "-gnat2022",  --  Ada 2022
+         "-gnatW8");  --  UTF8 strings
    end Compiler;
 
    for Languages use ("Ada");
