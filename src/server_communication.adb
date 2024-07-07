@@ -181,7 +181,9 @@ package body Server_Communication is
 
                case RX_Message.Content.Kind is
                   when Setup_Kind =>
-                     Thermistors.Setup (RX_Message.Content.Thermistor_Curves, RX_Message.Content.Heater_Thermistors);
+                     Thermistors.Setup
+                       (RX_Message.Content.Thermistor_Curves'Unrestricted_Access,
+                        RX_Message.Content.Heater_Thermistors);
                      Thermistors.Start_ISR_Loop;
                      Setup_Done := True;
                   when Heater_Reconfigure_Kind =>

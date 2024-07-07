@@ -78,7 +78,14 @@ package body STM32.ADC is
       --  Wait the ADC voltage regulator startup time of 30 us. See data sheet
       --  DS12288 rev. 5 chapter 5.3.19 Analog-to-digital converter characteristics
       --  table 66 ADC Characteristics at symbol tADCVREG_STUP.
-      delay until (Clock + Microseconds (30));
+      declare
+         Start_Time : constant Time := Clock;
+      begin
+         loop
+            exit when Clock > Start_Time + Microseconds (30);
+         end loop;
+      end;
+      --  Avoid using delay statements so this can be used in protected operations.
 
       --  The software procedure to enable the ADC is described in RM0440 rev 8
       --  Chapter 21.4.9.
@@ -129,7 +136,14 @@ package body STM32.ADC is
       --  Wait the ADC voltage regulator startup time of 30 us. See data sheet
       --  DS12288 rev. 5 chapter 5.3.19 Analog-to-digital converter characteristics
       --  table 66 ADC Characteristics at symbol tADCVREG_STUP.
-      delay until (Clock + Microseconds (30));
+      declare
+         Start_Time : constant Time := Clock;
+      begin
+         loop
+            exit when Clock > Start_Time + Microseconds (30);
+         end loop;
+      end;
+      --  Avoid using delay statements so this can be used in protected operations.
 
       This.CR.ADCALDIF := Convertion = Differential;
 
@@ -591,7 +605,14 @@ package body STM32.ADC is
          ADC345_Common_Periph.CCR.VREFEN := True;
          ADC345_Common_Periph.CCR.VSENSESEL := True;
       end if;
-      delay until (Clock + Temperature_Sensor_Stabilization);
+      declare
+         Start_Time : constant Time := Clock;
+      begin
+         loop
+            exit when Clock > Start_Time + Temperature_Sensor_Stabilization;
+         end loop;
+      end;
+      --  Avoid using delay statements so this can be used in protected operations.
    end Enable_VRef_TemperatureSensor_Connection;
 
    ------------------------------------

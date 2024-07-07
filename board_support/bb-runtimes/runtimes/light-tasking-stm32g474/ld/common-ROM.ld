@@ -41,7 +41,7 @@
 
 INCLUDE memory-map.ld
 
-_DEFAULT_STACK_SIZE = 14*1024;
+_DEFAULT_STACK_SIZE = 13*1024;
 
 ENTRY(_start_rom);
 
