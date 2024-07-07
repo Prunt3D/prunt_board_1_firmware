@@ -189,12 +189,11 @@ package body Step_Generator is
          Set_Period (STM32.Device.HRTimer_C, Step_Count_To_Period (Steps (Stepper_6)));
          Set_Compare_Value (STM32.Device.HRTimer_C, Compare_1, (if Dirs (Stepper_6) = Forward then 0 else 65_535));
 
-         if Step_Delta_Buffer_Loop_Enabled
-           and then Step_Delta_Buffer_Reader_Index + 1 = Step_Delta_Buffer_Loop_End_Index
-         then
+         if Step_Delta_Buffer_Loop_Enabled then
             if Input_Switches.Get_State (Loop_Input_Switch) = Loop_Until_State then
+               Step_Delta_Buffer_Reader_Index := Step_Delta_Buffer_Loop_End_Index - 1;
                Step_Delta_Buffer_Loop_Enabled := False;
-            else
+            elsif Step_Delta_Buffer_Reader_Index + 1 = Step_Delta_Buffer_Loop_End_Index then
                Step_Delta_Buffer_Reader_Index := Step_Delta_Buffer_Loop_Start_Index - 1;
             end if;
          end if;
