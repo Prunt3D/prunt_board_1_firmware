@@ -5,6 +5,7 @@ with Messages;               use Messages;
 with Hardware_Configuration; use Hardware_Configuration;
 with Ada.Real_Time;          use Ada.Real_Time;
 with Physical_Types;         use Physical_Types;
+with Heaters_PID;
 
 package Heaters is
 
@@ -31,32 +32,10 @@ package Heaters is
 
 private
 
-   subtype PID_Scale is Inverse_Temperature range 0.0 .. Dimensionless'Last;
-
    procedure Set_PWM (Heater : Heater_Name; Scale : PWM_Scale) with
      Pre => Scale >= 0.0 and Scale <= 1.0;
    function Get_PWM (Heater : Heater_Name) return Dimensionless with
      Post => Get_PWM'Result >= 0.0 and Get_PWM'Result <= 1.0;
-
-   type PID_Autotune_Context is record
-      Bias               : PWM_Scale;
-      D                  : PWM_Scale;
-      T1                 : Ada.Real_Time.Time;
-      T2                 : Ada.Real_Time.Time;
-      T_High             : Time_Span;
-      T_Low              : Time_Span;
-      Cycles             : Natural;
-      Heating            : Boolean;
-      Max_T              : Temperature;
-      Min_T              : Temperature;
-      Max_Cycles         : Natural;
-      Pf                 : Dimensionless;
-      Df                 : Frequency;
-      Proportional_Scale : PID_Scale;
-      Integral_Scale     : PID_Scale;
-      Derivative_Scale   : PID_Scale;
-   end record with
-     Volatile;
 
    type Context (Kind : Heater_Kind := Disabled_Kind) is record
       Setpoint                   : Temperature with
@@ -71,20 +50,14 @@ private
       Check_Last_Setpoint        : Temperature;
       Check_Goal_Temp            : Temperature;
       Check_Goal_Time            : Ada.Real_Time.Time;
+      Last_Temperature           : Temperature;
       case Kind is
          when Disabled_Kind =>
             null;
          when Bang_Bang_Kind =>
             null;
          when PID_Kind =>
-            Proportional_Scale : PID_Scale;
-            Integral_Scale     : PID_Scale;
-            Derivative_Scale   : PID_Scale;
-            Output_Sum         : Dimensionless;
-            Last_Temperature   : Temperature;
-            In_Autotune_Mode   : Boolean with
-              Atomic;
-            Autotune           : PID_Autotune_Context;
+            PID_Context : Heaters_PID.Context;
       end case;
    end record with
      Volatile;
