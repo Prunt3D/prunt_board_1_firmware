@@ -71,17 +71,17 @@ package Messages is
      Size => 1;
 
    type Step_Delta_Dirs is array (Stepper_Name) of Direction with
-     Scalar_Storage_Order => System.Low_Order_First, Component_Size => 1, Size => 8;
+     Scalar_Storage_Order => System.Low_Order_First, Component_Size => 1, Size => 6;
 
    type Step_Delta is record
       Dirs  : Step_Delta_Dirs;
       Steps : Step_Delta_Steps;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 50;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 48;
 
    for Step_Delta use record
-      Dirs  at 0 range 0 ..  7;
-      Steps at 1 range 0 .. 41;
+      Dirs  at 0 range 0 ..  5;
+      Steps at 0 range 6 .. 47;
    end record;
 
    type Step_Delta_List is array (Step_Delta_List_Index) of Step_Delta with
@@ -220,42 +220,42 @@ package Messages is
             null;
       end case;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 102_656;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 98_560;
 
    for Message_From_Server_Content use record
-      Kind                  at  0 range 0 ..       7;
-      Index                 at  8 range 0 ..      63;
-      Heater_Thermistors    at 16 range 0 ..      15;
-      Thermistor_Curves     at 18 range 0 ..  98_303;
-      Heater                at 16 range 0 ..       7;
-      Heater_Params         at 20 range 0 ..     191;
-      Heater_To_Tune        at 16 range 0 ..       7;
-      Setpoint_To_Tune      at 18 range 0 ..      15;
-      Loop_Input_Switch     at 16 range 0 ..       7;
-      Loop_Until_State      at 17 range 0 ..       7;
-      Fan_Targets           at 16 range 0 ..      63;
-      Heater_Targets        at 24 range 0 ..      31;
-      Last_Index            at 28 range 0 ..      15;
-      Safe_Stop_After       at 30 range 0 ..       7;
-      Steps                 at 31 range 0 .. 102_399;
-      Conditon_Input_Switch at 16 range 0 ..       7;
-      Skip_If_Hit_State     at 17 range 0 ..       7;
-      TMC_Write_Data        at 16 range 0 ..      63;
-      TMC_Read_Data         at 16 range 0 ..      31;
-      Heater_To_Check       at 16 range 0 ..       7;
-      Stepper               at 16 range 0 ..       7;
+      Kind                  at  0 range 0 ..      7;
+      Index                 at  8 range 0 ..     63;
+      Heater_Thermistors    at 16 range 0 ..     15;
+      Thermistor_Curves     at 18 range 0 .. 98_303;
+      Heater                at 16 range 0 ..      7;
+      Heater_Params         at 20 range 0 ..    191;
+      Heater_To_Tune        at 16 range 0 ..      7;
+      Setpoint_To_Tune      at 18 range 0 ..     15;
+      Loop_Input_Switch     at 16 range 0 ..      7;
+      Loop_Until_State      at 17 range 0 ..      7;
+      Fan_Targets           at 16 range 0 ..     63;
+      Heater_Targets        at 24 range 0 ..     31;
+      Last_Index            at 28 range 0 ..     15;
+      Safe_Stop_After       at 30 range 0 ..      7;
+      Steps                 at 31 range 0 .. 98_303;
+      Conditon_Input_Switch at 16 range 0 ..      7;
+      Skip_If_Hit_State     at 17 range 0 ..      7;
+      TMC_Write_Data        at 16 range 0 ..     63;
+      TMC_Read_Data         at 16 range 0 ..     31;
+      Heater_To_Check       at 16 range 0 ..      7;
+      Stepper               at 16 range 0 ..      7;
    end record;
 
    type Message_From_Server is record
       Checksum : CRC32;
       Content  : Message_From_Server_Content;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 3_210 * 32;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 3_082 * 32;
      --  Size should always be a multiple of 32 to allow for 32-bit CRC inputs on STM32.
 
    for Message_From_Server use record
-      Checksum at 0 range 0 ..      31;
-      Content  at 8 range 0 .. 102_655;
+      Checksum at 0 range 0 ..     31;
+      Content  at 8 range 0 .. 98_559;
    end record;
 
    type Message_From_Client_Kind is (Hello_Kind, Status_Kind, TMC_Read_Reply_Kind, Check_Reply_Kind) with
