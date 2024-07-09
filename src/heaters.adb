@@ -198,7 +198,9 @@ package body Heaters is
                Ctx.Check_Goal_Time            := Clock + Ctx.Check_Gain_Time;
             elsif Ctx.Check_Cumulative_Error > Ctx.Check_Max_Cumulative_Error then
                Make_Safe;
-               Server_Communication.Transmit_String_Line ("Heater " & Heater'Image & " could not maintain setpoint.");
+               Server_Communication.Transmit_String ("Heater");
+               Server_Communication.Transmit_String (Heater'Image);
+               Server_Communication.Transmit_String_Line (" could not maintain setpoint.");
                Server_Communication.Transmit_Fatal_Exception_Mark;
             end if;
          elsif Current_Temperature >= Ctx.Check_Goal_Temp then

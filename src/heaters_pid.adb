@@ -47,9 +47,14 @@ package body Heaters_PID is
                Ctx.Autotune.D := Ctx.Autotune.Bias;
             end if;
 
-            Server_Communication.Transmit_String_Line
-              ("Bias=" & Ctx.Autotune.Bias'Image & " D=" & Ctx.Autotune.D'Image & " Max_T=" &
-               Ctx.Autotune.Max_T'Image & " Min_T=" & Ctx.Autotune.Min_T'Image);
+            Server_Communication.Transmit_String ("Bias=");
+            Server_Communication.Transmit_String (Ctx.Autotune.Bias'Image);
+            Server_Communication.Transmit_String (" D=");
+            Server_Communication.Transmit_String (Ctx.Autotune.D'Image);
+            Server_Communication.Transmit_String (" Max_T=");
+            Server_Communication.Transmit_String (Ctx.Autotune.Max_T'Image);
+            Server_Communication.Transmit_String (" Min_T=");
+            Server_Communication.Transmit_String_Line (Ctx.Autotune.Min_T'Image);
 
             if Ctx.Autotune.Cycles > 2 then
                declare
@@ -62,17 +67,25 @@ package body Heaters_PID is
                   Ctx.Autotune.Integral_Scale     := Ctx.Autotune.Proportional_Scale * (2.0 * s / Tu);
                   Ctx.Autotune.Derivative_Scale   := Ctx.Autotune.Proportional_Scale * Tu * Ctx.Autotune.Df;
 
-                  Server_Communication.Transmit_String_Line ("Ku=" & Ku'Image & " Tu=" & Tu'Image);
-                  Server_Communication.Transmit_String_Line
-                    ("P=" & Ctx.Autotune.Proportional_Scale'Image & " I=" & Ctx.Autotune.Integral_Scale'Image & " D=" &
-                     Ctx.Autotune.Derivative_Scale'Image);
+                  Server_Communication.Transmit_String ("Ku=");
+                  Server_Communication.Transmit_String (Ku'Image);
+                  Server_Communication.Transmit_String (" Tu=");
+                  Server_Communication.Transmit_String_Line (Tu'Image);
+                  Server_Communication.Transmit_String ("P=");
+                  Server_Communication.Transmit_String (Ctx.Autotune.Proportional_Scale'Image);
+                  Server_Communication.Transmit_String (" I=");
+                  Server_Communication.Transmit_String (Ctx.Autotune.Integral_Scale'Image);
+                  Server_Communication.Transmit_String (" D=");
+                  Server_Communication.Transmit_String_Line (Ctx.Autotune.Derivative_Scale'Image);
                end;
             end if;
          end if;
 
          PWM := (Ctx.Autotune.Bias + Ctx.Autotune.D) / 2.0;
 
-         Server_Communication.Transmit_String_Line (Ctx.Autotune.Cycles'Image & "/" & Ctx.Autotune.Max_Cycles'Image);
+         Server_Communication.Transmit_String (Ctx.Autotune.Cycles'Image);
+         Server_Communication.Transmit_String ("/");
+         Server_Communication.Transmit_String_Line (Ctx.Autotune.Max_Cycles'Image);
 
          Ctx.Autotune.Cycles := @ + 1;
          Ctx.Autotune.Min_T  := Setpoint;
