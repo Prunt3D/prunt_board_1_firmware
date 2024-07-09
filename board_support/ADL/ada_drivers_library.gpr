@@ -35,11 +35,13 @@ library project Ada_Drivers_Library is
             for Default_Switches ("Ada") use
               ("-O3",     --  Optimization level 3
                -- "-gnatp",  --  Supress checks
+               "-Wstack-usage=128", --  Warn about large stack frames
                "-gnata", --  Enable assertions
                "-gnatn"); --  Enable inlining
          when "Debug" =>
             for Default_Switches ("Ada") use
-              ("-O0",    --  No optimization
+              ("-Og",    --  Optimization level g (level 0 causes some large stack frames to be generated)
+               "-Wstack-usage=128", --  Warn about large stack frames
                "-gnata") --  Enable assertions
               & Callgraph_Switch;
       end case;

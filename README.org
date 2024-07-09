@@ -28,5 +28,10 @@ stty -F /dev/serial/by-id/usb-Prunt_Prunt_Board_1_... 3000000 cs8 -cstopb -paren
 
 * Stack Usage Analysis
 #+begin_src shell
-python3 ./stack_usage.py ./board_support/bb-runtimes/runtimes/embedded-stm32g474/obj/*.ci ./obj/development/*.ci ./board_support/ADL/obj_Production/*.ci
+alr exec -- python3 ./stack_usage.py ./bin/prunt_board_1_firmware.elf ./obj/development/ <FUNCTION NAME> | tail -1
 #+end_src
+
+** Procedures to Check
+- =_start_rom=
+- =thermistors__adc_handler__end_of_sequence_handlerP=
+- =step_generator__timer_reload_handler__master_update_handlerP=
