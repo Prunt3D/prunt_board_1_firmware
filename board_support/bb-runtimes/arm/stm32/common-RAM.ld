@@ -41,7 +41,7 @@
 
 INCLUDE memory-map.ld
 
-_DEFAULT_STACK_SIZE = 8*1024;
+_DEFAULT_STACK_SIZE = 5*1024;
 
 ENTRY(_start_ram);
 
