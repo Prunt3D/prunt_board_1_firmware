@@ -3,6 +3,12 @@ with STM32.HRTimers; use STM32.HRTimers;
 with STM32.GPIO;     use STM32.GPIO;
 with HAL;            use HAL;
 with Input_Switches;
+with Server_Communication;
+with System.Machine_Reset;
+with Ada.Exceptions;
+with GNAT.Source_Info;
+with Ada.Real_Time; use Ada.Real_Time;
+with Heaters;
 
 package body Step_Generator is
 
@@ -217,6 +223,31 @@ package body Step_Generator is
          else
             Step_Delta_Buffer_Reader_Index := Step_Delta_Buffer_Reader_Index + 1;
          end if;
+      exception
+         when E : others =>
+            Heaters.Make_Safe;
+
+            --  To view tracebacks:
+            --  addr2line -e ./bin/prunt_board_1_firmware.elf -afp --demangle=gnat <address list here>
+
+            --  Repeat for around 50 seconds before a reset.
+            for I in reverse 0 .. 10 loop
+               Server_Communication.Transmit_String_Line ("");
+               Server_Communication.Transmit_String_Line ("Fatal exception on MCU:");
+               Server_Communication.Transmit_String_Line (Ada.Exceptions.Exception_Information (E));
+               Server_Communication.Transmit_String_Line
+                 ("Compilation date: " & GNAT.Source_Info.Compilation_ISO_Date);
+               Server_Communication.Transmit_String_Line
+                 ("Compilation time: " & GNAT.Source_Info.Compilation_Time);
+               Server_Communication.Transmit_String_Line
+                 ("Please note that this message will repeat " & I'Image &
+                  " more times at 5 second intervals before the board restarts.");
+               Server_Communication.Transmit_Fatal_Exception_Mark;
+               delay until Clock + (Seconds (5));
+            end loop;
+            Server_Communication.Transmit_String_Line ("Restarting.");
+            Server_Communication.Transmit_Fatal_Exception_Mark;
+            System.Machine_Reset.Stop;
       end Master_Update_Handler;
    end Timer_Reload_Handler;
 

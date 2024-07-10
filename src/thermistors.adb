@@ -1,9 +1,14 @@
-with STM32.GPIO;   use STM32.GPIO;
-with STM32.Device; use STM32.Device;
-with STM32.ADC;    use STM32.ADC;
-with STM32.DMA;    use STM32.DMA;
-with HAL;          use HAL;
+with STM32.GPIO;    use STM32.GPIO;
+with STM32.Device;  use STM32.Device;
+with STM32.ADC;     use STM32.ADC;
+with STM32.DMA;     use STM32.DMA;
+with HAL;           use HAL;
 with Heaters;
+with Server_Communication;
+with System.Machine_Reset;
+with Ada.Exceptions;
+with GNAT.Source_Info;
+with Ada.Real_Time; use Ada.Real_Time;
 
 package body Thermistors is
 
@@ -205,6 +210,31 @@ package body Thermistors is
          for Heater in Heater_Name loop
             Heaters.Update (Heater, Temps (Heater_Thermistors (Heater)));
          end loop;
+      exception
+         when E : others =>
+            Heaters.Make_Safe;
+
+            --  To view tracebacks:
+            --  addr2line -e ./bin/prunt_board_1_firmware.elf -afp --demangle=gnat <address list here>
+
+            --  Repeat for around 50 seconds before a reset.
+            for I in reverse 0 .. 10 loop
+               Server_Communication.Transmit_String_Line ("");
+               Server_Communication.Transmit_String_Line ("Fatal exception on MCU:");
+               Server_Communication.Transmit_String_Line (Ada.Exceptions.Exception_Information (E));
+               Server_Communication.Transmit_String_Line
+                 ("Compilation date: " & GNAT.Source_Info.Compilation_ISO_Date);
+               Server_Communication.Transmit_String_Line
+                 ("Compilation time: " & GNAT.Source_Info.Compilation_Time);
+               Server_Communication.Transmit_String_Line
+                 ("Please note that this message will repeat " & I'Image &
+                  " more times at 5 second intervals before the board restarts.");
+               Server_Communication.Transmit_Fatal_Exception_Mark;
+               delay until Clock + (Seconds (5));
+            end loop;
+            Server_Communication.Transmit_String_Line ("Restarting.");
+            Server_Communication.Transmit_Fatal_Exception_Mark;
+            System.Machine_Reset.Stop;
       end End_Of_Sequence_Handler;
    end ADC_Handler;
 

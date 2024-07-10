@@ -11,6 +11,7 @@ with Fans;
 with Ada.Exceptions;
 with Ada.Real_Time; use Ada.Real_Time;
 with GNAT.Source_Info;
+with System.Machine_Reset;
 
 with Last_Chance_Handler;
 pragma Unreferenced (Last_Chance_Handler);
@@ -74,6 +75,7 @@ begin
          end loop;
          Server_Communication.Transmit_String_Line ("Restarting.");
          Server_Communication.Transmit_Fatal_Exception_Mark;
+         System.Machine_Reset.Stop;
    end;
 
 end Prunt_Board_1_Firmware;
