@@ -47,20 +47,33 @@ begin
 
       Server_Communication.Run;
    exception
+      when E : Server_Communication.Timeout_Error =>
+         Heaters.Make_Safe;
+
+         Server_Communication.Transmit_String_Line (Ada.Exceptions.Exception_Message (E));
+         Server_Communication.Transmit_String_Line ("Restarting.");
+         Server_Communication.Transmit_Fatal_Exception_Mark;
       when E : others =>
          Heaters.Make_Safe;
 
          --  To view tracebacks:
          --  addr2line -e ./bin/prunt_board_1_firmware.elf -afp --demangle=gnat <address list here>
-         loop
+
+         --  Repeat for around 50 seconds before a reset.
+         for I in reverse 0 .. 10 loop
             Server_Communication.Transmit_String_Line ("");
             Server_Communication.Transmit_String_Line ("Fatal exception on MCU:");
             Server_Communication.Transmit_String_Line (Ada.Exceptions.Exception_Information (E));
             Server_Communication.Transmit_String_Line ("Compilation date: " & GNAT.Source_Info.Compilation_ISO_Date);
             Server_Communication.Transmit_String_Line ("Compilation time: " & GNAT.Source_Info.Compilation_Time);
+            Server_Communication.Transmit_String_Line
+              ("Please note that this message will repeat " & I'Image &
+               " more times at 5 second intervals before the board restarts.");
             Server_Communication.Transmit_Fatal_Exception_Mark;
-            delay until Clock + (Seconds (1));
+            delay until Clock + (Seconds (5));
          end loop;
+         Server_Communication.Transmit_String_Line ("Restarting.");
+         Server_Communication.Transmit_Fatal_Exception_Mark;
    end;
 
 end Prunt_Board_1_Firmware;
