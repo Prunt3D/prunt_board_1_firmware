@@ -1,7 +1,7 @@
-with STM32.GPIO;   use STM32.GPIO;
-with HAL;          use HAL;
-with STM32.Device; use STM32.Device;
-with STM32.Timers; use STM32.Timers;
+with STM32.GPIO;    use STM32.GPIO;
+with HAL;           use HAL;
+with STM32.Device;  use STM32.Device;
+with STM32.Timers;  use STM32.Timers;
 with STM32.IWDG;
 with Thermistors;
 
@@ -163,53 +163,53 @@ package body Heaters is
             end;
       end case;
 
+      if Ctx.Kind /= Disabled_Kind then
+         --  Algorithm from Klipper.
+         if Current_Temperature >= Ctx.Setpoint - Ctx.Check_Hysteresis or Ctx.Setpoint <= 0.0 then
+            Ctx.Check_Approaching_Setpoint := False;
+            Ctx.Check_Starting_Approach    := False;
+            if Current_Temperature <= Ctx.Setpoint + Ctx.Check_Hysteresis then
+               Ctx.Check_Cumulative_Error := 0.0 * celcius;
+            end if;
+            Ctx.Check_Last_Setpoint := Ctx.Setpoint;
+         else
+            if Ctx.Kind = PID_Kind and then Ctx.PID_Context.In_Autotune_Mode then
+               Ctx.Check_Cumulative_Error :=
+                 Ctx.Check_Cumulative_Error +
+                 ((Ctx.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature) * 0.5;
+            else
+               Ctx.Check_Cumulative_Error :=
+                 Ctx.Check_Cumulative_Error + (Ctx.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature;
+            end if;
+            if not Ctx.Check_Approaching_Setpoint then
+               if Ctx.Setpoint /= Ctx.Check_Last_Setpoint then
+                  Ctx.Check_Approaching_Setpoint := True;
+                  Ctx.Check_Starting_Approach    := True;
+                  Ctx.Check_Goal_Temp            := Current_Temperature + Ctx.Check_Minimum_Gain;
+                  Ctx.Check_Goal_Time            := Clock + Ctx.Check_Gain_Time;
+               elsif Ctx.Check_Cumulative_Error > Ctx.Check_Max_Cumulative_Error then
+                  Make_Safe;
+                  raise Heater_Check_Failure with "Heater " & Heater'Image & " could not maintain setpoint.";
+               end if;
+            elsif Current_Temperature >= Ctx.Check_Goal_Temp then
+               Ctx.Check_Starting_Approach := False;
+               Ctx.Check_Cumulative_Error  := 0.0 * celcius;
+               Ctx.Check_Goal_Temp         := Current_Temperature + Ctx.Check_Minimum_Gain;
+               Ctx.Check_Goal_Time         := Clock + Ctx.Check_Gain_Time;
+            elsif Clock >= Ctx.Check_Goal_Time then
+               Ctx.Check_Approaching_Setpoint := False;
+            elsif Ctx.Check_Starting_Approach then
+               Ctx.Check_Goal_Temp :=
+                 Temperature'Min (Ctx.Check_Goal_Temp, Current_Temperature + Ctx.Check_Minimum_Gain);
+            end if;
+            Ctx.Check_Last_Setpoint := Ctx.Setpoint;
+         end if;
+      end if;
+
       Updated_Heaters (Heater) := True;
       if Updated_Heaters = Updated_Heaters_Type'(others => True) then
          Updated_Heaters := (others => False);
          STM32.IWDG.Reset_Watchdog;
-      end if;
-
-      if Ctx.Kind = Disabled_Kind then
-         return;
-      end if;
-
-      --  Algorithm from Klipper.
-      if Current_Temperature >= Ctx.Setpoint - Ctx.Check_Hysteresis or Ctx.Setpoint <= 0.0 then
-         Ctx.Check_Approaching_Setpoint := False;
-         Ctx.Check_Starting_Approach    := False;
-         if Current_Temperature <= Ctx.Setpoint + Ctx.Check_Hysteresis then
-            Ctx.Check_Cumulative_Error := 0.0 * celcius;
-         end if;
-         Ctx.Check_Last_Setpoint := Ctx.Setpoint;
-      else
-         if Ctx.Kind = PID_Kind and then Ctx.PID_Context.In_Autotune_Mode then
-            Ctx.Check_Cumulative_Error :=
-              Ctx.Check_Cumulative_Error + ((Ctx.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature) * 0.5;
-         else
-            Ctx.Check_Cumulative_Error :=
-              Ctx.Check_Cumulative_Error + (Ctx.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature;
-         end if;
-         if not Ctx.Check_Approaching_Setpoint then
-            if Ctx.Setpoint /= Ctx.Check_Last_Setpoint then
-               Ctx.Check_Approaching_Setpoint := True;
-               Ctx.Check_Starting_Approach    := True;
-               Ctx.Check_Goal_Temp            := Current_Temperature + Ctx.Check_Minimum_Gain;
-               Ctx.Check_Goal_Time            := Clock + Ctx.Check_Gain_Time;
-            elsif Ctx.Check_Cumulative_Error > Ctx.Check_Max_Cumulative_Error then
-               Make_Safe;
-               raise Heater_Check_Failure with "Heater " & Heater'Image & " could not maintain setpoint.";
-            end if;
-         elsif Current_Temperature >= Ctx.Check_Goal_Temp then
-            Ctx.Check_Starting_Approach := False;
-            Ctx.Check_Cumulative_Error  := 0.0 * celcius;
-            Ctx.Check_Goal_Temp         := Current_Temperature + Ctx.Check_Minimum_Gain;
-            Ctx.Check_Goal_Time         := Clock + Ctx.Check_Gain_Time;
-         elsif Clock >= Ctx.Check_Goal_Time then
-            Ctx.Check_Approaching_Setpoint := False;
-         elsif Ctx.Check_Starting_Approach then
-            Ctx.Check_Goal_Temp := Temperature'Min (Ctx.Check_Goal_Temp, Current_Temperature + Ctx.Check_Minimum_Gain);
-         end if;
-         Ctx.Check_Last_Setpoint := Ctx.Setpoint;
       end if;
    end Update;
 
