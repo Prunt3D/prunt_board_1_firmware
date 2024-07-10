@@ -12,12 +12,10 @@ package body Heaters_PID is
       --  Algorithm from Marlin.
       if (Current_Temperature > Setpoint + 30.0 * celcius) then
          Heaters.Make_Safe;
-         Server_Communication.Transmit_String_Line ("Heater overshot by over 30 C during PID autotune.");
-         Server_Communication.Transmit_Fatal_Exception_Mark;
+         raise Heaters.Heater_Check_Failure with "Heater overshot by over 30 C during PID autotune.";
       elsif Start_Time - Ctx.Autotune.T1 > Minutes (20) and Start_Time - Ctx.Autotune.T2 > Minutes (20) then
          Heaters.Make_Safe;
-         Server_Communication.Transmit_String_Line ("Heater has taken over 20 minutes to cycle during PID autotune.");
-         Server_Communication.Transmit_Fatal_Exception_Mark;
+         raise Heaters.Heater_Check_Failure with "Heater has taken over 20 minutes to cycle during PID autotune.";
       end if;
 
       Ctx.Autotune.Max_T := Temperature'Max (@, Current_Temperature);

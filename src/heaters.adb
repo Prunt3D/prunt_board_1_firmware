@@ -3,7 +3,6 @@ with HAL;          use HAL;
 with STM32.Device; use STM32.Device;
 with STM32.Timers; use STM32.Timers;
 with STM32.IWDG;
-with Server_Communication;
 with Thermistors;
 
 package body Heaters is
@@ -198,10 +197,7 @@ package body Heaters is
                Ctx.Check_Goal_Time            := Clock + Ctx.Check_Gain_Time;
             elsif Ctx.Check_Cumulative_Error > Ctx.Check_Max_Cumulative_Error then
                Make_Safe;
-               Server_Communication.Transmit_String ("Heater");
-               Server_Communication.Transmit_String (Heater'Image);
-               Server_Communication.Transmit_String_Line (" could not maintain setpoint.");
-               Server_Communication.Transmit_Fatal_Exception_Mark;
+               raise Heater_Check_Failure with "Heater " & Heater'Image & " could not maintain setpoint.";
             end if;
          elsif Current_Temperature >= Ctx.Check_Goal_Temp then
             Ctx.Check_Starting_Approach := False;

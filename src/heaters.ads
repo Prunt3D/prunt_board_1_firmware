@@ -30,6 +30,8 @@ package Heaters is
 
    function Check_If_Autotune_Done (Heater : Heater_Name) return Boolean;
 
+   Heater_Check_Failure : exception;
+
 private
 
    procedure Set_PWM (Heater : Heater_Name; Scale : PWM_Scale) with
