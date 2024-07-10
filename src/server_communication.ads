@@ -8,7 +8,8 @@ package Server_Communication is
    procedure Transmit_String_Line (S : String);
    procedure Transmit_Fatal_Exception_Mark;
 
-   DMA_Error : exception;
+   DMA_Error     : exception;
+   Timeout_Error : exception;
 
 private
 

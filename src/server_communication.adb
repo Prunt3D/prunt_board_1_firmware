@@ -304,12 +304,16 @@ package body Server_Communication is
               (This           => Comms_UART_DMA_RX_Controller,
                Stream         => Comms_UART_DMA_RX_Stream,
                Expected_Level => Full_Transfer,
-               Timeout        => Time_Span_Last,
+               Timeout        => Seconds (5),
                Result         => Error);
 
-            --  TODO: Detect framing errors and use them to stop polling.
+            --  TODO: Change this to allow for failures if anyone reports them, specifically UART framing errors.
             if Error = DMA_Transfer_Error or Error = DMA_Device_Error then
                raise DMA_Error with Error'Image;
+            elsif Error = DMA_Timeout_Error then
+               --  This timer may seem short, but the step queue is less than a second, so the server needs to have
+               --  much shorter time between messages than this during normal operation.
+               raise Timeout_Error with "No message from server for 5 seconds.";
             end if;
          end;
       end loop;
