@@ -31,7 +31,7 @@ package body Fans is
 
    procedure Set_PWM (Fan : Fan_Name; Scale : Fixed_Point_PWM_Scale) is
    begin
-      Set_Compare_Value (Fan_Timers (Fan).all, Fan_Timer_Channels (Fan), UInt16 (Float (Scale) * 50_001.0));
+      Set_Compare_Value (Fan_Timers (Fan).all, Fan_Timer_Channels (Fan), UInt16 (Float (Scale) * 60_001.0));
    end Set_PWM;
 
 end Fans;
