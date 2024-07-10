@@ -67,7 +67,7 @@ package body Heaters is
          when Disabled_Kind =>
             Ctx :=
               (Kind                       => Disabled_Kind,
-               Setpoint                   => 0.0 * celcius,
+               Setpoint                   => -1000.0 * celcius,
                Check_Max_Cumulative_Error => Dimensionless (Parameters.Max_Cumulative_Error) * celcius,
                Check_Gain_Time            => To_Time_Span (Duration (Parameters.Check_Gain_Time)),
                Check_Minimum_Gain         => Dimensionless (Parameters.Check_Minimum_Gain) * celcius,
@@ -176,7 +176,7 @@ package body Heaters is
             if Ctx.Kind = PID_Kind and then Ctx.PID_Context.In_Autotune_Mode then
                Ctx.Check_Cumulative_Error :=
                  Ctx.Check_Cumulative_Error +
-                 ((Ctx.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature) * 0.5;
+                 ((Ctx.Autotune.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature) * 0.5;
             else
                Ctx.Check_Cumulative_Error :=
                  Ctx.Check_Cumulative_Error + (Ctx.Setpoint - Ctx.Check_Hysteresis) - Current_Temperature;
@@ -251,11 +251,11 @@ package body Heaters is
 
       case Ctx.Kind is
          when PID_Kind =>
-            Ctx.Setpoint := Setpoint;
+            Ctx.Setpoint := 0.0 * celcius;
             declare
                PWM : PWM_Scale;
             begin
-               Heaters_PID.Start_Autotune (Ctx.Setpoint, Ctx.PID_Context, PWM);
+               Heaters_PID.Start_Autotune (Setpoint, Ctx.PID_Context, PWM);
                Set_PWM (Heater, PWM);
             end;
          when others =>

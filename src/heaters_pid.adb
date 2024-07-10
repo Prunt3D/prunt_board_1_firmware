@@ -4,13 +4,11 @@ with Heaters;
 
 package body Heaters_PID is
 
-   procedure Autotune_Update
-     (Setpoint : in out Temperature; Ctx : in out Context; Current_Temperature : Temperature; PWM : out PWM_Scale)
-   is
+   procedure Autotune_Update (Ctx : in out Context; Current_Temperature : Temperature; PWM : out PWM_Scale) is
       Start_Time : constant Ada.Real_Time.Time := Clock;
    begin
       --  Algorithm from Marlin.
-      if (Current_Temperature > Setpoint + 30.0 * celcius) then
+      if (Current_Temperature > Ctx.Setpoint + 30.0 * celcius) then
          Heaters.Make_Safe;
          raise Heaters.Heater_Check_Failure with "Heater overshot by over 30 C during PID autotune.";
       elsif Start_Time - Ctx.Autotune.T1 > Minutes (20) and Start_Time - Ctx.Autotune.T2 > Minutes (20) then
@@ -21,13 +19,14 @@ package body Heaters_PID is
       Ctx.Autotune.Max_T := Temperature'Max (@, Current_Temperature);
       Ctx.Autotune.Min_T := Temperature'Min (@, Current_Temperature);
 
-      if Ctx.Autotune.Heating and Current_Temperature > Setpoint and Start_Time > Ctx.Autotune.T2 + Seconds (5) then
+      if Ctx.Autotune.Heating and Current_Temperature > Ctx.Setpoint and Start_Time > Ctx.Autotune.T2 + Seconds (5)
+      then
          Ctx.Autotune.Heating := False;
          PWM                  := (Ctx.Autotune.Bias - Ctx.Autotune.D) / 2.0;
          Ctx.Autotune.T1      := Start_Time;
          Ctx.Autotune.T_High  := Ctx.Autotune.T1 - Ctx.Autotune.T2;
-         Ctx.Autotune.Max_T   := Setpoint;
-      elsif (not Ctx.Autotune.Heating) and Current_Temperature < Setpoint and
+         Ctx.Autotune.Max_T   := Ctx.Setpoint;
+      elsif (not Ctx.Autotune.Heating) and Current_Temperature < Ctx.Setpoint and
         Start_Time > Ctx.Autotune.T1 + Seconds (5)
       then
          Ctx.Autotune.Heating := True;
@@ -86,19 +85,18 @@ package body Heaters_PID is
          Server_Communication.Transmit_String_Line (Ctx.Autotune.Max_Cycles'Image);
 
          Ctx.Autotune.Cycles := @ + 1;
-         Ctx.Autotune.Min_T  := Setpoint;
+         Ctx.Autotune.Min_T  := Ctx.Setpoint;
       end if;
 
       if Ctx.Autotune.Cycles > Natural'Max (2, Ctx.Autotune.Max_Cycles) then
          PWM                  := 0.0;
-         Setpoint             := 0.0 * celcius;
          Ctx.In_Autotune_Mode := False;
          Server_Communication.Transmit_String_Line ("PID autotune done.");
       end if;
    end Autotune_Update;
 
    procedure Update
-     (Setpoint : in out Temperature; Ctx : in out Context; Current_Temperature : Temperature; PWM : out PWM_Scale)
+     (Setpoint : Temperature; Ctx : in out Context; Current_Temperature : Temperature; PWM : out PWM_Scale)
    is
    begin
       if Ctx.In_Autotune_Mode then
@@ -136,7 +134,7 @@ package body Heaters_PID is
       end if;
    end Update;
 
-   procedure Start_Autotune (Setpoint : in out Temperature; Ctx : in out Context; PWM : out PWM_Scale) is
+   procedure Start_Autotune (Setpoint : Temperature; Ctx : in out Context; PWM : out PWM_Scale) is
       Start_Time : constant Ada.Real_Time.Time := Clock;
    begin
       if Ctx.In_Autotune_Mode then
@@ -144,7 +142,8 @@ package body Heaters_PID is
       end if;
 
       Ctx.Autotune :=
-        (Bias               => 0.5, --  Half of max power (always 1.0 for now).
+        (Setpoint           => Setpoint,
+         Bias               => 0.5, --  Half of max power (always 1.0 for now).
          D                  => 0.5, --  Half of max power (always 1.0 for now).
          T1                 => Start_Time,
          T2                 => Start_Time,

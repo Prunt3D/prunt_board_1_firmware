@@ -171,6 +171,12 @@ package body Step_Generator is
       end if;
    end Force_Start;
 
+   function Get_Extruder_Total_Steps return Big_Step_Count is
+   begin
+      --  TODO: Update this with a stepper that is specified by the server.
+      return Extruder_Step_Count;
+   end Get_Extruder_Total_Steps;
+
    protected body Timer_Reload_Handler is
       procedure Master_Update_Handler is
          Steps : Step_Delta_Steps renames Step_Delta_Buffer (Step_Delta_Buffer_Reader_Index).Steps;

@@ -53,6 +53,7 @@ package Physical_Types is
        Dimension => (Symbol => "J", Volt => 1, Amp => 1, Second => 1, others => 0);
 
    subtype PWM_Scale is Dimensionless range 0.0 .. 1.0;
+   subtype Smoothing_Factor is Dimensionless range 0.0 .. 1.0;
 
    subtype Cruise_Ratio is Dimensionless range 0.03 .. 0.97;
 
@@ -115,11 +116,16 @@ package Physical_Types is
 
    subtype Specific_Heat_Capacity is Dimensioned_Float with
        Dimension => (Symbol => "J/(g°C)", Volt => 1, Amp => 1, Second => 1, Gram => -1, Celcius => -1, others => 0);
+   subtype Lengthwise_Heat_Capacity is Dimensioned_Float with
+       Dimension =>
+        (Symbol => "J/(mm°C)", Volt => 1, Amp => 1, Second => 1, Millimeter => -1, Celcius => -1, others => 0);
 
    subtype Inverse_Temperature is Dimensioned_Float with
        Dimension => (Symbol => "°C⁻¹", Celcius => -1, others => 0);
    subtype Time_Over_Temperature is Dimensioned_Float with
        Dimension => (Symbol => "s/°C", Second => 1, Celcius => -1, others => 0);
+   subtype Temperature_Over_Time is Dimensioned_Float with
+       Dimension => (Symbol => "°C/s", Second => -1, Celcius => 1, others => 0);
    subtype Frequency_Over_Temperature is Dimensioned_Float with
        Dimension => (Symbol => "Hz/°C", Second => -1, Celcius => -1, others => 0);
 

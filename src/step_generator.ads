@@ -8,12 +8,15 @@ package Step_Generator is
 
    procedure Init;
 
+   type Big_Step_Count is mod 2**32;
+
    procedure Enqueue (Steps : Step_Delta);
    procedure Setup_Loop (Input_Switch : Input_Switch_Name; Until_State : Input_Switch_State);
    procedure Enqueue_Start_Loop;
    procedure Enqueue_Stop_Loop;
    function Check_If_Idle return Boolean;
    procedure Force_Start;
+   function Get_Extruder_Total_Steps return Big_Step_Count;
 
    Empty_Buffer_Error : exception;
 
@@ -22,6 +25,8 @@ private
    use HAL;
 
    type Step_Delta_Buffer_Index is mod 2**13;
+
+   Extruder_Step_Count : Big_Step_Count := 0 with Atomic, Volatile;
 
    Step_Delta_Buffer : array (Step_Delta_Buffer_Index) of Step_Delta with
      Volatile_Components;

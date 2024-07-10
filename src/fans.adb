@@ -34,4 +34,12 @@ package body Fans is
       Set_Compare_Value (Fan_Timers (Fan).all, Fan_Timer_Channels (Fan), UInt16 (Float (Scale) * 60_001.0));
    end Set_PWM;
 
+   function Get_PWM (Fan : Fan_Name) return PWM_Scale is
+   begin
+      return
+        Dimensionless'Min
+          (Dimensionless (UInt16'(Current_Capture_Value (Fan_Timers (Fan).all, Fan_Timer_Channels (Fan)))) / 60_001.0,
+           PWM_Scale'Last);
+   end Get_PWM;
+
 end Fans;
