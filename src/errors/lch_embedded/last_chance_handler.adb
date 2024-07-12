@@ -32,6 +32,9 @@
 --  Note this version is for use with the ravenscar-full runtime.
 
 with Error_Handling;
+with Server_Communication;
+with GNAT.Source_Info;
+with System.Machine_Reset;
 
 package body Last_Chance_Handler is
 
@@ -39,10 +42,22 @@ package body Last_Chance_Handler is
    -- Last_Chance_Handler --
    -------------------------
 
-   procedure Last_Chance_Handler (Error : Exception_Id) is
-      pragma Unreferenced (Error);
+   procedure Last_Chance_Handler (Except : Exception_Occurrence) is
    begin
       Error_Handling.Make_Safe;
+
+      if Server_Communication.Is_Init_Done then
+         Server_Communication.Transmit_String_Line ("");
+         Server_Communication.Transmit_String_Line ("Fatal exception on MCU:");
+         Server_Communication.Transmit_String_Line (Exception_Information (Except));
+         Server_Communication.Transmit_String_Line ("Compilation date: " & GNAT.Source_Info.Compilation_ISO_Date);
+         Server_Communication.Transmit_String_Line ("Compilation time: " & GNAT.Source_Info.Compilation_Time);
+         Server_Communication.Transmit_String_Line ("Restarting.");
+         Server_Communication.Transmit_Fatal_Exception_Mark;
+      end if;
+
+      System.Machine_Reset.Stop;
+
       --  No-return procedure...
       loop
          null;

@@ -51,7 +51,14 @@ package body Server_Communication is
           AF_Output_Type => Push_Pull,
           AF_Speed       => Speed_100MHz,
           AF             => Comms_UART_RX_Pin_AF));
+
+      Init_Done := True;
    end Init;
+
+   function Is_Init_Done return Boolean is
+   begin
+      return Init_Done;
+   end Is_Init_Done;
 
    procedure Run is
       function Are_All_Statuses_Clear return Boolean is

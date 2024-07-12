@@ -32,6 +32,9 @@
 --  Note this version is for use with the ravenscar-sfp runtime.
 
 with Error_Handling;
+with Server_Communication;
+with GNAT.Source_Info;
+with System.Machine_Reset;
 
 package body Last_Chance_Handler is
 
@@ -40,9 +43,27 @@ package body Last_Chance_Handler is
    -------------------------
 
    procedure Last_Chance_Handler (Msg : System.Address; Line : Integer) is
-      pragma Unreferenced (Msg, Line);
+      Msg_String : String (1 .. 80) with Address => Msg;
    begin
       Error_Handling.Make_Safe;
+
+      if Server_Communication.Is_Init_Done then
+         Server_Communication.Transmit_String_Line ("");
+         Server_Communication.Transmit_String_Line ("Fatal exception on MCU:");
+         for C of Msg_String loop
+            exit when C = ASCII.NUL;
+            Server_Communication.Transmit_String ("" & C);
+         end loop;
+         Server_Communication.Transmit_String_Line ("");
+         Server_Communication.Transmit_String_Line ("Line: " & Line'Image);
+         Server_Communication.Transmit_String_Line ("Compilation date: " & GNAT.Source_Info.Compilation_ISO_Date);
+         Server_Communication.Transmit_String_Line ("Compilation time: " & GNAT.Source_Info.Compilation_Time);
+         Server_Communication.Transmit_String_Line ("Restarting.");
+         Server_Communication.Transmit_Fatal_Exception_Mark;
+      end if;
+
+      System.Machine_Reset.Stop;
+
       --  No-return procedure...
       loop
          null;

@@ -7,11 +7,14 @@ package Server_Communication is
    procedure Transmit_String (S : String);
    procedure Transmit_String_Line (S : String);
    procedure Transmit_Fatal_Exception_Mark;
+   function Is_Init_Done return Boolean;
 
    DMA_Error     : exception;
    Timeout_Error : exception;
 
 private
+
+   Init_Done : Boolean := False with Atomic, Volatile;
 
    RX_Message : Message_From_Server;
 
