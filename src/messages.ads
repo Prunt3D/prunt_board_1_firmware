@@ -92,7 +92,7 @@ package Messages is
 
    type Heater_Thermistor_Map is array (Heater_Name) of Thermistor_Name;
 
-   type Heater_Kind is (Disabled_Kind, PID_Kind, Bang_Bang_Kind) with
+   type Heater_Kind is (Disabled_Kind, PID_Kind, Bang_Bang_Kind, PID_Autotune_Kind) with
      Size => 8;
 
    type Fixed_Point_Celcius is delta 2.0**(-5) range -1_000.0 .. 1_000.0 with
@@ -107,33 +107,47 @@ package Messages is
    type Fixed_Point_PID_Parameter is delta 2.0**(-18) range 0.0 .. 8_000.0 with
      Size => 32;
 
+   type PID_Autotune_Cycle_Count is range 2 .. 1_000 with
+     Size => 16;
+
    type Heater_Parameters (Kind : Heater_Kind := Disabled_Kind) is record
-      Max_Cumulative_Error : Fixed_Point_Celcius;
-      Check_Gain_Time      : Fixed_Point_Seconds;
-      Check_Minimum_Gain   : Fixed_Point_Celcius;
-      Hysteresis           : Fixed_Point_Celcius;
+      Check_Max_Cumulative_Error : Fixed_Point_Celcius;
+      Check_Gain_Time            : Fixed_Point_Seconds;
+      Check_Minimum_Gain         : Fixed_Point_Celcius;
+      Check_Hysteresis           : Fixed_Point_Celcius;
       case Kind is
          when Disabled_Kind =>
             null;
          when Bang_Bang_Kind =>
-            null;
+            Bang_Bang_Hysteresis : Fixed_Point_Celcius;
          when PID_Kind =>
             Proportional_Scale : Fixed_Point_PID_Parameter;
             Integral_Scale     : Fixed_Point_PID_Parameter;
             Derivative_Scale   : Fixed_Point_PID_Parameter;
+         when PID_Autotune_Kind =>
+            Max_Cycles                 : PID_Autotune_Cycle_Count;
+            PID_Tuning_Temperature     : Fixed_Point_Celcius;
+            Proportional_Tuning_Factor : Fixed_Point_PID_Parameter;
+            Derivative_Tuning_Factor   : Fixed_Point_PID_Parameter;
       end case;
    end record with
      Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 192;
 
+   --  TODO: Regenerate this.
    for Heater_Parameters use record
-      Kind                 at  0 range 0 ..  7;
-      Max_Cumulative_Error at  2 range 0 .. 15;
-      Check_Gain_Time      at  4 range 0 .. 15;
-      Check_Minimum_Gain   at  6 range 0 .. 15;
-      Hysteresis           at  8 range 0 .. 15;
-      Proportional_Scale   at 12 range 0 .. 31;
-      Integral_Scale       at 16 range 0 .. 31;
-      Derivative_Scale     at 20 range 0 .. 31;
+      Kind                       at  0 range  0 ..  7;
+      Check_Max_Cumulative_Error at  2 range  0 .. 15;
+      Check_Gain_Time            at  4 range  0 .. 15;
+      Check_Minimum_Gain         at  6 range  0 .. 15;
+      Check_Hysteresis           at  8 range  0 .. 15;
+      Bang_Bang_Hysteresis       at 12 range  0 .. 15;
+      Proportional_Scale         at 12 range  0 .. 31;
+      Integral_Scale             at 16 range  0 .. 31;
+      Derivative_Scale           at 20 range  0 .. 31;
+      Max_Cycles                 at 12 range  0 .. 15;
+      PID_Tuning_Temperature     at 14 range  0 .. 15;
+      Proportional_Tuning_Factor at 16 range  0 .. 31;
+      Derivative_Tuning_Factor   at 20 range  0 .. 31;
    end record;
 
    type Thermistor_Point is record
@@ -162,7 +176,6 @@ package Messages is
    type Message_From_Server_Kind is
      (Setup_Kind,
       Heater_Reconfigure_Kind,
-      Heater_Autotune_Kind,
       Loop_Setup_Kind,
       Regular_Step_Delta_List_Kind,
       Looping_Step_Delta_List_Kind,
@@ -171,7 +184,6 @@ package Messages is
       TMC_Read_Kind,
       Status_Kind,
       Check_If_Idle_Kind,
-      Check_If_Heater_Stable_Kind,
       Check_If_Heater_Autotune_Done_Kind,
       Enable_Stepper_Kind,
       Disable_Stepper_Kind,
@@ -188,9 +200,6 @@ package Messages is
          when Heater_Reconfigure_Kind =>
             Heater        : Heater_Name;
             Heater_Params : Heater_Parameters;
-         when Heater_Autotune_Kind =>
-            Heater_To_Tune   : Heater_Name;
-            Setpoint_To_Tune : Fixed_Point_Celcius;
          when Loop_Setup_Kind =>
             Loop_Input_Switch : Input_Switch_Name;
             Loop_Until_State  : Input_Switch_State;
@@ -212,7 +221,7 @@ package Messages is
             null;
          when Check_If_Idle_Kind =>
             null;
-         when Check_If_Heater_Stable_Kind | Check_If_Heater_Autotune_Done_Kind =>
+         when Check_If_Heater_Autotune_Done_Kind =>
             Heater_To_Check : Heater_Name;
          when Enable_Stepper_Kind | Disable_Stepper_Kind =>
             Stepper : Stepper_Name;
@@ -229,8 +238,6 @@ package Messages is
       Thermistor_Curves     at 18 range 0 .. 98_303;
       Heater                at 16 range 0 ..      7;
       Heater_Params         at 20 range 0 ..    191;
-      Heater_To_Tune        at 16 range 0 ..      7;
-      Setpoint_To_Tune      at 18 range 0 ..     15;
       Loop_Input_Switch     at 16 range 0 ..      7;
       Loop_Until_State      at 17 range 0 ..      7;
       Fan_Targets           at 16 range 0 ..     63;

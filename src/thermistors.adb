@@ -9,6 +9,7 @@ with System.Machine_Reset;
 with Ada.Exceptions;
 with GNAT.Source_Info;
 with Ada.Real_Time; use Ada.Real_Time;
+with Last_Chance_Handler;
 
 package body Thermistors is
 
@@ -46,7 +47,7 @@ package body Thermistors is
 
          for C of Curves loop
             for P of C loop
-               P := (Temp => 1_000_000.0 * celcius, Value => 0);
+               P := (Temp => Bad_Reading_Indicator, Value => 0);
             end loop;
          end loop;
 
@@ -171,9 +172,7 @@ package body Thermistors is
          end loop;
 
          if Left > Right then
-            --  Always return a high value to force the heater off as the ADC result should never go outside of the
-            --  defined range under normal operation.
-            return 1_000_000.0 * celcius;
+            return Bad_Reading_Indicator;
          end if;
 
          declare
@@ -192,24 +191,28 @@ package body Thermistors is
       end Interpolate;
 
       procedure End_Of_Sequence_Handler is
-         Temps : Float_Reported_Temperatures;
       begin
          Clear_All_Status (Thermistor_DMA_Controller, Thermistor_DMA_Stream);
          Start_Conversion;
 
          for Thermistor in Thermistor_Name loop
-            declare
-               Temp : Temperature := Interpolate (ADC_Results (Thermistor), Thermistor);
-            begin
-               Temps (Thermistor) := Temp;
-            end;
+            Last_Temperatures (Thermistor) := Interpolate (ADC_Results (Thermistor), Thermistor);
          end loop;
 
-         Last_Temperatures := Temps;
+         --  We only raise an exception if a bad thermistor reading is to be used for a heater.
+         for Heater in Heater_Name loop
+            if Last_Temperatures (Heater_Thermistors (Heater)) = Bad_Reading_Indicator then
+               raise Bad_Reading_Error
+                 with "Thermistor reading out of range for " & Heater_Thermistors (Heater)'Image;
+            end if;
+         end loop;
 
          for Heater in Heater_Name loop
-            Heaters.Update (Heater, Temps (Heater_Thermistors (Heater)));
+            Heaters.Update_Reading (Heater, Last_Temperatures (Heater_Thermistors (Heater)));
          end loop;
+      exception
+         when E : others =>
+            Last_Chance_Handler.Last_Chance_Handler (E);
       end End_Of_Sequence_Handler;
    end ADC_Handler;
 

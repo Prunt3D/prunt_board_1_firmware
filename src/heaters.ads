@@ -1,11 +1,8 @@
---  PID algorithm from https://github.com/br3ttb/Arduino-PID-Library
---  Copyright Brett Beauregard <br3ttb@gmail.com> brettbeauregard.com
-
 with Messages;               use Messages;
 with Hardware_Configuration; use Hardware_Configuration;
 with Ada.Real_Time;          use Ada.Real_Time;
 with Physical_Types;         use Physical_Types;
-with Heaters_PID;
+with Init_Checkers;
 
 package Heaters is
 
@@ -20,63 +17,82 @@ package Heaters is
    procedure Set_Setpoint (Heater : Heater_Name; Setpoint : Temperature);
    --  Must not be called from ISRs.
 
-   procedure Update (Heater : Heater_Name; Current_Temperature : Temperature);
-
    function Get_PWM (Heater : Heater_Name) return Fixed_Point_PWM_Scale;
 
-   function Check_If_Stable (Heater : Heater_Name) return Boolean;
-
-   procedure Start_Autotune (Heater : Heater_Name; Setpoint : Temperature);
-
    function Check_If_Autotune_Done (Heater : Heater_Name) return Boolean;
+
+   procedure Update_Reading (Heater : Heater_Name; Current_Temperature : Temperature);
 
    Heater_Check_Failure : exception;
 
 private
+
+   Init_Checker : Init_Checkers.Init_Checker;
+
+   protected type Heater_Update_Holder with
+     Priority => Thermistor_DMA_Interrupt_Priority
+   is
+      procedure Set_Update (Temp : Temperature);
+      entry Wait_Next_Reading (Temp : out Temperature);
+   private
+      Reading      : Temperature;
+      Update_Ready : Boolean := False;
+   end Heater_Update_Holder;
+
+   Heater_Update_Holders : array (Heater_Name) of Heater_Update_Holder;
+
+   protected type Heater_Params_Holder is
+      procedure Set (Params : Heater_Parameters);
+      function Get return Heater_Parameters;
+   private
+      Data : Heater_Parameters := (Kind => Disabled_Kind, others => <>);
+   end Heater_Params_Holder;
+
+   Heater_Heater_Params : array (Heater_Name) of Heater_Params_Holder;
+
+   protected type Setpoint_Holder is
+      procedure Set (Setpoint : Temperature);
+      function Get return Temperature;
+   private
+      Data : Temperature := 0.0 * celcius;
+   end Setpoint_Holder;
+
+   Heater_Setpoint_Holders : array (Heater_Name) of Setpoint_Holder;
+
+   task type Heater_Controller (Heater : Heater_Name := Heater_Name'First) with
+     Storage_Size => 5 * 1_024
+   is
+   end Heater_Controller;
+
+   Heater_Controller_1 : Heater_Controller (Heater_1);
+   Heater_Controller_2 : Heater_Controller (Heater_2);
+
+   type Safety_Checker_Context is record
+      Updated_Since_Last_Reset : Boolean            := False;
+      Approaching_Setpoint     : Boolean            := False;
+      Starting_Approach        : Boolean            := False;
+      Cumulative_Error         : Temperature        := 0.0 * celcius;
+      Last_Setpoint            : Temperature        := 0.0 * celcius;
+      Goal_Temp                : Temperature        := 0.0 * celcius;
+      Goal_Time                : Ada.Real_Time.Time := Clock;
+   end record;
+
+   type Safety_Checker_Contexts_Array is array (Heater_Name) of Safety_Checker_Context;
+
+   protected Safety_Checker is
+      procedure Report_Updated (Updated_Heater : Heater_Name; Current_Temp : Temperature);
+   private
+      Contexts : Safety_Checker_Contexts_Array := (others => <>);
+   end Safety_Checker;
 
    procedure Set_PWM (Heater : Heater_Name; Scale : PWM_Scale) with
      Pre => Scale >= 0.0 and Scale <= 1.0;
    function Get_PWM (Heater : Heater_Name) return Dimensionless with
      Post => Get_PWM'Result >= 0.0 and Get_PWM'Result <= 1.0;
 
-   type Context (Kind : Heater_Kind := Disabled_Kind) is record
-      Setpoint                   : Temperature with
-        Atomic;
-      Check_Max_Cumulative_Error : Temperature;
-      Check_Gain_Time            : Time_Span;
-      Check_Minimum_Gain         : Temperature;
-      Check_Hysteresis           : Temperature;
-      Check_Approaching_Setpoint : Boolean;
-      Check_Starting_Approach    : Boolean;
-      Check_Cumulative_Error     : Temperature;
-      Check_Last_Setpoint        : Temperature;
-      Check_Goal_Temp            : Temperature;
-      Check_Goal_Time            : Ada.Real_Time.Time;
-      Last_Temperature           : Temperature;
-      case Kind is
-         when Disabled_Kind =>
-            null;
-         when Bang_Bang_Kind =>
-            null;
-         when PID_Kind =>
-            PID_Context : Heaters_PID.Context;
-      end case;
-   end record with
-     Volatile;
-
-   Contexts : array (Heater_Name) of Context := (others => (Kind => Disabled_Kind, others => <>)) with
-     Volatile_Components;
-
-   Global_Update_Blocker : Boolean := False with
-     Atomic, Volatile;
-
-   Watchdog_Started : Boolean := False with
-     Atomic, Volatile;
-
-   type Updated_Heaters_Type is array (Heater_Name) of Boolean with
-     Volatile_Components, Atomic_Components;
-   Updated_Heaters : Updated_Heaters_Type with
-     Volatile, Atomic;
-   --  It should be safe to remove this Atomic on boards with too many heaters for it to be an option.
+   procedure PID_Loop (Heater : Heater_Name);
+   procedure PID_Autotune_Loop (Heater : Heater_Name);
+   procedure Bang_Bang_Loop (Heater : Heater_Name);
+   procedure Disabled_Loop (Heater : Heater_Name);
 
 end Heaters;

@@ -9,6 +9,7 @@ with Ada.Exceptions;
 with GNAT.Source_Info;
 with Ada.Real_Time; use Ada.Real_Time;
 with Heaters;
+with Last_Chance_Handler;
 
 package body Step_Generator is
 
@@ -223,6 +224,9 @@ package body Step_Generator is
          else
             Step_Delta_Buffer_Reader_Index := Step_Delta_Buffer_Reader_Index + 1;
          end if;
+      exception
+         when E : others =>
+            Last_Chance_Handler.Last_Chance_Handler (E);
       end Master_Update_Handler;
    end Timer_Reload_Handler;
 

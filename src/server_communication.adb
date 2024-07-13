@@ -195,10 +195,6 @@ package body Server_Communication is
                      Setup_Done := True;
                   when Heater_Reconfigure_Kind =>
                      Heaters.Setup (RX_Message.Content.Heater, RX_Message.Content.Heater_Params);
-                  when Heater_Autotune_Kind =>
-                     Heaters.Start_Autotune
-                       (RX_Message.Content.Heater_To_Tune,
-                        Dimensionless (RX_Message.Content.Setpoint_To_Tune) * celcius);
                   when Loop_Setup_Kind =>
                      Step_Generator.Setup_Loop
                        (RX_Message.Content.Loop_Input_Switch, RX_Message.Content.Loop_Until_State);
@@ -254,10 +250,6 @@ package body Server_Communication is
                   when Check_If_Idle_Kind =>
                      Set_TX_Message_Kind (Check_Reply_Kind);
                      TX_Message.Content.Condition_Met := Byte_Boolean (Step_Generator.Check_If_Idle);
-                  when Check_If_Heater_Stable_Kind =>
-                     Set_TX_Message_Kind (Check_Reply_Kind);
-                     TX_Message.Content.Condition_Met :=
-                       Byte_Boolean (Heaters.Check_If_Stable (RX_Message.Content.Heater_To_Check));
                   when Check_If_Heater_Autotune_Done_Kind =>
                      Set_TX_Message_Kind (Check_Reply_Kind);
                      TX_Message.Content.Condition_Met :=

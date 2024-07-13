@@ -53,6 +53,7 @@ package body High_Power_Switch is
             Start_Conversion (High_Power_Switch_ADC);
             loop
                exit when Status (High_Power_Switch_ADC, Regular_Channel_Conversion_Completed);
+               delay until Clock; --  Force a yield.
             end loop;
             Clear_Status (High_Power_Switch_ADC, Regular_Channel_Conversion_Completed);
 

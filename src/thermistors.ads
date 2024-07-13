@@ -16,13 +16,19 @@ package Thermistors is
    procedure Start_ISR_Loop;
    function Last_Reported_Temperature (Thermistor : Thermistor_Name) return Temperature;
 
+   Bad_Reading_Error : exception;
+
 private
+
+   Bad_Reading_Indicator : constant Temperature := 1_000_000_000.0 * celcius;
 
    type ADC_Results_Type is array (Thermistor_Name) of ADC_Value with
      Alignment => 2, Pack, Volatile, Volatile_Components;
    ADC_Results : aliased ADC_Results_Type;
 
    type Float_Reported_Temperatures is array (Thermistor_Name) of Temperature;
+
+   type Heater_Boolean_Map is array (Heater_Name) of Boolean;
 
    type Float_Thermistor_Point is record
       Temp  : Temperature;
@@ -42,7 +48,7 @@ private
    private
       Curves             : Float_Thermistor_Curves_Array;
       Heater_Thermistors : Heater_Thermistor_Map;
-      Last_Temperatures  : Float_Reported_Temperatures := (others => 1_000_000.0 * celcius);
+      Last_Temperatures  : Float_Reported_Temperatures := (others => Bad_Reading_Indicator);
       Init_Done          : Boolean                     := False;
       ISR_Loop_Started   : Boolean                     := False;
       Setup_Done         : Boolean                     := False;
