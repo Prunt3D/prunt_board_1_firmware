@@ -60,6 +60,7 @@ package body Last_Chance_Handler is
          Server_Communication.Transmit_String_Line ("Compilation time: " & GNAT.Source_Info.Compilation_Time);
          Server_Communication.Transmit_String_Line ("Restarting.");
          Server_Communication.Transmit_Fatal_Exception_Mark;
+         Server_Communication.Transmit_String_Line (".....");
       end if;
 
       System.Machine_Reset.Stop;
