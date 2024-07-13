@@ -93,7 +93,7 @@ package body Steppers is
       end loop;
       TMC_UART_Internal.CR1.TE := True;
 
-      Fail_Time := Clock + Seconds (1);
+      Fail_Time := Clock + Milliseconds (10);
 
       Outer :
       for I in RX_Buffer'Range loop
