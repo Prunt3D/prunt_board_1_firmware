@@ -112,8 +112,10 @@ package body Steppers is
          Server_Communication.Transmit_String_Line ("TMC UART overrun.");
       end if;
 
-      --  TODO: DMA appears to not work when HDSEL is set, but this is entirely undocumented. As transmitted bytes go
-      --  in to the 8-byte receiving FIFO, we can not rely on the FIFO to guarantee that all bytes will be received.
+      --  TODO: DMA appears to not work when HDSEL is set (a transfer error is indicated by the DMA but the USART
+      --  itself has no error flag set), but this is entirely undocumented. As transmitted bytes go in to the 8-byte
+      --  receiving FIFO, we can not rely on the FIFO to guarantee that all bytes will be received so we need to figure
+      --  out another solution to this.
 
       for I in 1 .. 8 loop
          Output (I) := TMC2240_UART_Byte (RX_Buffer (I + 4));
