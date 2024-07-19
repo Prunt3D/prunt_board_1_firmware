@@ -75,8 +75,7 @@ package body Server_Communication is
       In_Conditional_Skip_Mode : Boolean       := False;
       Setup_Done               : Boolean       := False;
    begin
-      --  Ensure nothing is transmitting junk. The server will not transmit any data until it receives an initial
-      --  message.
+      --  Ensure nothing is transmitting junk.
       loop
          delay until Clock + Seconds (1);
 
