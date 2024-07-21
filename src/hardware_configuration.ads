@@ -11,6 +11,7 @@ with STM32.ADC;            use STM32.ADC;
 with STM32_SVD;
 with STM32_SVD.USART;
 with STM32_SVD.ADC;
+with STM32_SVD.DMA;
 with Ada.Interrupts.Names; use Ada.Interrupts.Names;
 with Ada.Interrupts;       use Ada.Interrupts;
 
@@ -32,6 +33,11 @@ package Hardware_Configuration is
    Comms_UART_RX_Pin_AF : constant GPIO_Alternate_Function := GPIO_AF_USART3_7;
 
    --  Steppers
+
+   TMC_UART_DMA_RX_Controller         : DMA_Controller renames DMA_1;
+   TMC_UART_DMA_RX_Stream             : constant DMA_Stream_Selector  := Stream_2;
+   TMC_UART_DMA_RX_Priority           : constant DMA_Priority_Level   := Priority_Low;
+   TMC_UART_DMA_RX_Channel            : constant DMA_Channel_Selector := USART2_RX;
 
    TMC_UART_Internal : aliased STM32_SVD.USART.USART_Peripheral with
      Import, Volatile, Address => STM32_SVD.USART2_Base;
