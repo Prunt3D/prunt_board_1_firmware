@@ -258,8 +258,8 @@ package body Heaters is
          end if;
 
          Proportional_Scale := PID_Scale (Params.Proportional_Scale);
-         Integral_Scale     := PID_Scale (Params.Integral_Scale);
-         Derivative_Scale   := PID_Scale (Params.Derivative_Scale);
+         Integral_Scale     := PID_Scale (Params.Integral_Scale) * (hertz / Thermistors.Loop_Frequency);
+         Derivative_Scale   := PID_Scale (Params.Derivative_Scale) / (hertz / Thermistors.Loop_Frequency);
 
          Heater_Update_Holders (Heater).Wait_Next_Reading (Current_Temperature);
 
