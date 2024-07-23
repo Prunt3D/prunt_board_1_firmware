@@ -10,7 +10,11 @@ package body Fans is
       procedure Init_Timer (Tim : in out Timer; Channel : Timer_Channel; Polarity : Timer_Output_Compare_Polarity) is
       begin
          Enable_Clock (Tim);
-         Configure (This => Tim, Prescaler => 74, Period => 60_000); --  33.33 Hz
+         Disable (Tim); --  The same timer may be used for multiple channels.
+         if Has_BDTR (Tim) then
+            Enable_Main_Output (Tim);
+         end if;
+         Configure (This => Tim, Prescaler => 74, Period => 0); --  33.33 Hz
          Configure_Channel_Output
            (This => Tim, Channel => Channel, Mode => PWM1, State => Enable, Pulse => 0, Polarity => Polarity);
          Enable (Tim);

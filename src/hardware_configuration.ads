@@ -110,15 +110,16 @@ package Hardware_Configuration is
    --  Fans
 
    Fan_Timers           : constant array (Fan_Name) of access Timer                  :=
-     (Fan_1 => Timer_15'Access, Fan_2 => Timer_5'Access, Fan_3 => Timer_2'Access, Fan_4 => Timer_17'Access);
+     (Fan_1 => Timer_2'Access, Fan_2 => Timer_5'Access, Fan_3 => Timer_2'Access, Fan_4 => Timer_17'Access);
+   --  Fan 1 has a unique timer that can be used (TIM15) if a different frequency is required.
    Fan_Timer_Channels   : constant array (Fan_Name) of Timer_Channel                 :=
-     (Fan_1 => Channel_1, Fan_2 => Channel_1, Fan_3 => Channel_3, Fan_4 => Channel_1);
+     (Fan_1 => Channel_2, Fan_2 => Channel_1, Fan_3 => Channel_3, Fan_4 => Channel_1);
    Fan_Timer_Polarities : constant array (Fan_Name) of Timer_Output_Compare_Polarity :=
-     (Fan_1 => High, Fan_2 => High, Fan_3 => High, Fan_4 => Low);
+     (Fan_1 => High, Fan_2 => High, Fan_3 => High, Fan_4 => High);
    Fan_GPIO_Points      : constant array (Fan_Name) of GPIO_Point                    :=
      (Fan_1 => PA1, Fan_2 => PB2, Fan_3 => PB10, Fan_4 => PB9);
    Fan_GPIO_AFs         : constant array (Fan_Name) of GPIO_Alternate_Function       :=
-     (Fan_1 => GPIO_AF_TIM15_9, Fan_2 => GPIO_AF_TIM5_2, Fan_3 => GPIO_AF_TIM2_1, Fan_4 => GPIO_AF_TIM17_1);
+     (Fan_1 => GPIO_AF_TIM2_1, Fan_2 => GPIO_AF_TIM5_2, Fan_3 => GPIO_AF_TIM2_1, Fan_4 => GPIO_AF_TIM17_1);
 
    --  Change the below client ID if you are porting this code to a new board. The following command may be used to
    --  generate a random ID:
