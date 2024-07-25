@@ -76,7 +76,7 @@ package Hardware_Configuration is
    Heater_Timer_Channels   : constant array (Heater_Name) of Timer_Channel                 :=
      (Heater_1 => Channel_2, Heater_2 => Channel_1);
    Heater_Timer_Polarities : constant array (Heater_Name) of Timer_Output_Compare_Polarity :=
-     (Heater_1 => High, Heater_2 => Low);
+     (Heater_1 => High, Heater_2 => High);
    Heater_GPIO_Points      : constant array (Heater_Name) of GPIO_Point := (Heater_1 => PB7, Heater_2 => PA15);
    Heater_GPIO_AFs         : constant array (Heater_Name) of GPIO_Alternate_Function       :=
      (Heater_1 => GPIO_AF_TIM4_2, Heater_2 => GPIO_AF_TIM8_2);
