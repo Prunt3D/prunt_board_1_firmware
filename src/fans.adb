@@ -11,7 +11,7 @@ package body Fans is
       begin
          Enable_Clock (Tim);
          Disable (Tim); --  The same timer may be used for multiple channels.
-         if Has_BDTR (Tim) then
+         if Advanced_Timer (Tim) then
             Enable_Main_Output (Tim);
          end if;
          Configure (This => Tim, Prescaler => 74, Period => 0); --  33.33 Hz

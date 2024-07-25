@@ -791,12 +791,12 @@ package STM32.Timers is
 
    procedure Enable_Main_Output (This : in out Timer)
      with
-       Pre  => Has_BDTR (This),
+       Pre  => Advanced_Timer (This),
        Post => Main_Output_Enabled (This);
 
    procedure Disable_Main_Output (This : in out Timer)
      with
-       Pre  => Has_BDTR (This),
+       Pre  => Advanced_Timer (This),
        Post => (if No_Outputs_Enabled (This) then
                   not Main_Output_Enabled (This));
 
@@ -1231,11 +1231,14 @@ package STM32.Timers is
      (This'Address = STM32_SVD.TIM6_Base or
       This'Address = STM32_SVD.TIM7_Base);
 
-   --  Timer 1, 8 and 20
+   --  Timer 1, 8, 20, 15, 16 and 17
    function Advanced_Timer (This : Timer) return Boolean is
      (This'Address = STM32_SVD.TIM1_Base or
       This'Address = STM32_SVD.TIM8_Base or
-      This'Address = STM32_SVD.TIM20_Base);
+      This'Address = STM32_SVD.TIM20_Base or
+      This'Address = STM32_SVD.TIM15_Base or
+      This'Address = STM32_SVD.TIM16_Base or
+      This'Address = STM32_SVD.TIM17_Base);
 
    --  Timer 2 and 5
    function Has_32bit_Counter (This : Timer) return Boolean is
@@ -1460,15 +1463,6 @@ package STM32.Timers is
         This'Address = STM32_SVD.TIM16_Base or
         This'Address = STM32_SVD.TIM17_Base) and
        Channel = Channel_1));
-
-   --  Timer 1, 8, 15, 16, 17, 20
-   function Has_BDTR (This : Timer) return Boolean is
-     (This'Address = STM32_SVD.TIM1_Base or
-      This'Address = STM32_SVD.TIM8_Base or
-      This'Address = STM32_SVD.TIM15_Base or
-      This'Address = STM32_SVD.TIM16_Base or
-      This'Address = STM32_SVD.TIM17_Base or
-      This'Address = STM32_SVD.TIM20_Base);
 
 private
 

@@ -15,6 +15,10 @@ package body Heaters is
       procedure Init_Timer (Tim : in out Timer; Channel : Timer_Channel; Polarity : Timer_Output_Compare_Polarity) is
       begin
          Enable_Clock (Tim);
+         Disable (Tim); --  The same timer may be used for multiple channels.
+         if Advanced_Timer (Tim) then
+            Enable_Main_Output (Tim);
+         end if;
          Configure (This => Tim, Prescaler => 2, Period => 50_000); --  1kHz
          Configure_Channel_Output
            (This => Tim, Channel => Channel, Mode => PWM1, State => Enable, Pulse => 0, Polarity => Polarity);
