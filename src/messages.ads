@@ -169,9 +169,14 @@ package Messages is
    type Thermistor_Curves_Array is array (Thermistor_Name) of Thermistor_Curve with
      Pack, Scalar_Storage_Order => System.Low_Order_First;
 
-   type Reported_Temperatures is array (Thermistor_Name) of Fixed_Point_Celcius;
+   type Reported_Temperatures is array (Thermistor_Name) of Fixed_Point_Celcius with
+     Pack, Scalar_Storage_Order => System.Low_Order_First;
 
-   type Reported_Heater_PWMs is array (Heater_Name) of Fixed_Point_PWM_Scale;
+   type Reported_Heater_PWMs is array (Heater_Name) of Fixed_Point_PWM_Scale with
+     Pack, Scalar_Storage_Order => System.Low_Order_First;
+
+   type Reported_Switch_States is array (Input_Switch_Name) of Input_Switch_State with
+     Pack, Scalar_Storage_Order => System.Low_Order_First;
 
    type Message_From_Server_Kind is
      (Setup_Kind,
@@ -272,6 +277,7 @@ package Messages is
       Index        : Message_Index;
       Temperatures : Reported_Temperatures;
       Heaters      : Reported_Heater_PWMs;
+      Switches     : Reported_Switch_States;
       case Kind is
          when Hello_Kind =>
             Version : Client_Version;
@@ -285,30 +291,31 @@ package Messages is
             Condition_Met : Byte_Boolean;
       end case;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 448;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 512;
 
    for Message_From_Client_Content use record
       Kind               at  0 range 0 ..   7;
       Index              at  8 range 0 ..  63;
       Temperatures       at 16 range 0 ..  63;
-      Heaters            at 32 range 0 ..  31;
-      Version            at 36 range 0 ..  31;
-      ID                 at 40 range 0 .. 127;
-      TMC_Receive_Failed at 36 range 0 ..   7;
-      TMC_Data           at 37 range 0 ..  63;
-      Condition_Met      at 36 range 0 ..   7;
+      Heaters            at 24 range 0 ..  31;
+      Switches           at 28 range 0 ..  79;
+      Version            at 40 range 0 ..  31;
+      ID                 at 44 range 0 .. 127;
+      TMC_Receive_Failed at 40 range 0 ..   7;
+      TMC_Data           at 41 range 0 ..  63;
+      Condition_Met      at 40 range 0 ..   7;
    end record;
 
    type Message_From_Client is record
       Checksum : CRC32;
       Content  : Message_From_Client_Content;
    end record with
-     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 16 * 32;
+     Scalar_Storage_Order => System.Low_Order_First, Bit_Order => System.Low_Order_First, Size => 18 * 32;
      --  Size should always be a multiple of 32 to allow for 32-bit CRC inputs on STM32.
 
    for Message_From_Client use record
       Checksum at 0 range 0 ..  31;
-      Content  at 8 range 0 .. 447;
+      Content  at 8 range 0 .. 511;
    end record;
 
 end Messages;

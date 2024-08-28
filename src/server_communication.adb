@@ -283,6 +283,10 @@ package body Server_Communication is
                   TX_Message.Content.Temperatures (Thermistor) := Fixed_Point_Celcius (Temp / celcius);
                end if;
             end;
+
+            for Switch in Input_Switch_Name loop
+               TX_Message.Content.Switches (Switch) := Input_Switches.Get_State (Switch);
+            end loop;
          end loop;
 
          Start_Transfer
